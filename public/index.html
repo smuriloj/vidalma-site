@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vidalma — todo o digital do seu negócio</title>
+<meta name="description" content="Site, aplicativo, arte de Instagram e automação. Um fornecedor só, direto com você. Site simples no ar em 7 dias.">
+<link rel="canonical" href="https://vidalma.com.br/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vidalma — todo o digital do seu negócio">
+<meta property="og:description" content="Site, aplicativo, arte de Instagram e automação. Um fornecedor só, direto com você. Site simples no ar em 7 dias.">
+<meta property="og:url" content="https://vidalma.com.br/">
+<meta property="og:image" content="https://vidalma.com.br/og-image.png">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#101418">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<link rel="preload" href="fontes/Chivo-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fontes/DMSans-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+<style>
+/* ---------- fontes da marca, servidas pelo próprio site ---------- */
+@font-face{
+  font-family:'Chivo';
+  font-weight:100 900;
+  font-display:swap;
+  src:url('fontes/Chivo-variable-latin.woff2') format('woff2');
+}
+@font-face{
+  font-family:'DM Sans';
+  font-weight:100 900;
+  font-display:swap;
+  src:url('fontes/DMSans-variable-latin.woff2') format('woff2');
+}
+
+/* ---------- variáveis da marca (de 06-cor-e-codigo/vidalma.css) ---------- */
+:root{
+  --preto:#101418;
+  --amarelo:#F2C230;
+  --aco:#454C55;
+  --nevoa:#E9EBEA;
+  --titulo:'Chivo',system-ui,sans-serif;
+  --texto:'DM Sans',system-ui,sans-serif;
+  --raio:3px;
+  --e1:4px; --e2:8px; --e3:12px; --e4:16px; --e5:24px;
+  --e6:32px; --e7:48px; --e8:64px;
+  --largura:1080px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--nevoa);
+  color:var(--preto);
+  font-family:var(--texto);
+  font-size:17px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--titulo);font-weight:800;line-height:1.05;margin:0}
+h1{letter-spacing:-.03em}
+h2{letter-spacing:-.025em}
+h3{font-weight:700;letter-spacing:-.02em}
+p{margin:0}
+
+.env{width:100%;max-width:var(--largura);margin:0 auto;padding:0 var(--e5)}
+
+/* ---------- rótulo ---------- */
+.rotulo{
+  font:500 12px/1 var(--texto);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--aco);
+}
+.escuro .rotulo{color:#E9EBEA}
+
+/* ---------- botões ---------- */
+.btn{
+  display:inline-block;
+  background:var(--amarelo);
+  color:var(--preto);
+  font:700 16px/1 var(--titulo);
+  padding:17px 28px;
+  border:0;
+  border-radius:var(--raio);
+  text-decoration:none;
+  min-height:48px;
+  transition:transform .12s ease;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+a:focus-visible,.btn:focus-visible{
+  outline:3px solid var(--amarelo);
+  outline-offset:3px;
+}
+.escuro a:focus-visible{outline-color:var(--nevoa)}
+
+/* ---------- cabeçalho ---------- */
+.topo{background:var(--preto);padding:var(--e5) 0 0}
+.marca{display:flex;align-items:center;gap:14px}
+.marca svg{width:38px;height:38px;flex:0 0 auto}
+.marca-nome{
+  font:800 27px/1 var(--titulo);
+  color:var(--nevoa);
+  letter-spacing:-.02em;
+}
+.marca-assin{
+  display:block;
+  font:500 11px/1 var(--texto);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#E9EBEA;
+  margin-top:6px;
+}
+
+/* ---------- hero ---------- */
+.hero{
+  background:var(--preto);
+  color:var(--nevoa);
+  padding:var(--e7) 0 var(--e8);
+  position:relative;
+  overflow:hidden;
+}
+.hero .env{position:relative;z-index:1}
+/* grafismo: marca d'água em Aço sobre Preto, cortada pela borda (manual, pág. grafismos) */
+.dagua{
+  position:absolute;
+  right:-7%;
+  top:50%;
+  transform:translateY(-50%);
+  width:min(48vw,540px);
+  height:auto;
+  z-index:0;
+  pointer-events:none;
+  display:none;
+}
+.hero h1{
+  font-size:clamp(40px,9vw,84px);
+  margin:var(--e5) 0 var(--e5);
+  max-width:11ch;
+}
+.hero-sub{
+  font-size:19px;
+  max-width:44ch;
+  margin-bottom:var(--e7);
+}
+.hero-sub strong{font-weight:500}
+.hero-nota{
+  margin-top:var(--e5);
+  font-size:14px;
+  max-width:46ch;
+}
+
+/* ---------- seções ---------- */
+.secao{padding:var(--e8) 0}
+.secao h2{font-size:clamp(28px,5vw,42px);margin-bottom:var(--e5);max-width:20ch}
+.secao-intro{font-size:18px;color:var(--aco);max-width:56ch;margin-bottom:var(--e7)}
+.escuro{background:var(--preto);color:var(--nevoa)}
+.escuro .secao-intro{color:#E9EBEA}
+
+/* ---------- quatro frentes ---------- */
+.frentes{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:var(--e4);
+}
+.frente{
+  background:#fff;
+  border:1.5px solid #E9EBEA;
+  border-top:4px solid var(--preto);
+  border-radius:0;
+  padding:var(--e5);
+}
+.frente svg{width:44px;height:44px;display:block;margin-bottom:var(--e4)}
+.frente h3{font-size:21px;margin-bottom:var(--e3)}
+.frente p{font-size:16px;color:var(--aco)}
+
+/* ---------- como funciona ---------- */
+.passos{display:grid;grid-template-columns:1fr;gap:var(--e6)}
+.passo{border-top:1.5px solid #454C55;padding-top:var(--e4)}
+.passo-n{
+  font:800 13px/1 var(--titulo);
+  letter-spacing:.1em;
+  color:var(--amarelo);
+  display:block;
+  margin-bottom:var(--e3);
+}
+.passo h3{font-size:20px;margin-bottom:var(--e2);color:var(--nevoa)}
+.passo p{font-size:16px;color:#E9EBEA}
+
+/* ---------- preço ---------- */
+.preco-lista{
+  list-style:none;
+  margin:0 0 var(--e7);
+  padding:0;
+  max-width:60ch;
+}
+.preco-lista li{
+  padding:var(--e4) 0 var(--e4) var(--e5);
+  border-bottom:1.5px solid #E9EBEA;
+  border-left:3px solid var(--preto);
+  font-size:17px;
+  margin-bottom:0;
+}
+.preco-lista li:first-child{border-top:1.5px solid #E9EBEA}
+
+/* ---------- fecho ---------- */
+.fecho{background:var(--preto);color:var(--nevoa);padding:var(--e8) 0}
+.fecho h2{font-size:clamp(30px,6vw,50px);margin-bottom:var(--e5);max-width:16ch}
+.fecho p{font-size:18px;color:#E9EBEA;max-width:50ch;margin-bottom:var(--e7)}
+
+/* ---------- rodapé ---------- */
+.rodape{background:var(--preto);color:#E9EBEA;padding:0 0 var(--e7);font-size:14px}
+.rodape-linha{
+  border-top:1.5px solid #454C55;
+  padding-top:var(--e5);
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--e4) var(--e5);
+  align-items:center;
+  justify-content:space-between;
+}
+.rodape a{
+  color:var(--nevoa);
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+}
+.rodape a:hover{text-decoration:underline}
+.faixa{display:flex;gap:6px}
+.faixa span{display:block;width:38px;height:7px;background:var(--aco)}
+.faixa span:last-child{background:var(--amarelo)}
+
+/* ---------- telas maiores ---------- */
+@media (min-width:720px){
+  .frentes{grid-template-columns:repeat(2,1fr);gap:var(--e5)}
+  .passos{grid-template-columns:repeat(3,1fr);gap:var(--e5)}
+  .secao{padding:96px 0}
+  .hero{padding:var(--e8) 0 96px}
+}
+@media (min-width:900px){
+  .dagua{display:block}
+}
+@media (min-width:1000px){
+  .frentes{grid-template-columns:repeat(4,1fr)}
+}
+
+/* ---------- movimento ---------- */
+.aparece{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+.aparece.visivel{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .aparece{opacity:1;transform:none;transition:none}
+  .btn{transition:none}
+  .btn:hover{transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ CABEÇALHO ============ -->
+<header class="topo">
+  <div class="env">
+    <div class="marca">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vidalma">
+        <path d="M16 16H62V34H16Z" fill="#E9EBEA"/>
+        <path d="M66 16H84V62H66Z" fill="#E9EBEA"/>
+        <path d="M38 66H84V84H38Z" fill="#E9EBEA"/>
+        <path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"/>
+      </svg>
+      <span>
+        <span class="marca-nome">vidalma</span>
+        <span class="marca-assin">todo o digital do seu negócio</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero escuro">
+  <svg class="dagua" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <path d="M16 16H62V34H16Z" fill="#454C55"/>
+    <path d="M66 16H84V62H66Z" fill="#454C55"/>
+    <path d="M38 66H84V84H38Z" fill="#454C55"/>
+    <path d="M16 38H30L34 43V84H16Z" fill="#454C55"/>
+  </svg>
+  <div class="env">
+    <span class="rotulo">Estúdio digital · atende o Brasil todo</span>
+    <h1>Seu site no ar em 7 dias.</h1>
+    <p class="hero-sub">
+      Site, aplicativo, arte de Instagram e automação.
+      <strong>Um fornecedor só, falando direto com você</strong> — sem agência no meio.
+    </p>
+    <a class="btn" href="https://instagram.com/vidalmastudio">Chama no direct</a>
+    <p class="hero-nota">
+      Os 7 dias valem para site de até 5 páginas e contam da entrega do seu conteúdo.
+      Para o resto, eu digo o prazo antes de começar.
+    </p>
+  </div>
+</section>
+
+<!-- ============ QUATRO FRENTES ============ -->
+<section class="secao" id="frentes">
+  <div class="env">
+    <span class="rotulo">O que eu faço</span>
+    <h2>Quatro frentes. Um fornecedor.</h2>
+    <p class="secao-intro">
+      Você não precisa de uma pessoa para o site, outra para as artes e uma terceira
+      para o sistema. Está tudo aqui.
+    </p>
+
+    <div class="frentes">
+
+      <article class="frente aparece">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Web">
+          <path d="M16 16H62V34H16Z" fill="#F2C230"/>
+          <path d="M66 16H84V62H66Z" fill="#454C55"/>
+          <path d="M38 66H84V84H38Z" fill="#454C55"/>
+          <path d="M16 38H30L34 43V84H16Z" fill="#454C55"/>
+        </svg>
+        <h3>Web</h3>
+        <p>Site, página de venda, portfólio, catálogo e blog. Domínio, hospedagem
+        e manutenção do que já existe.</p>
+      </article>
+
+      <article class="frente aparece">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aplicativos">
+          <path d="M16 16H62V34H16Z" fill="#454C55"/>
+          <path d="M66 16H84V62H66Z" fill="#F2C230"/>
+          <path d="M38 66H84V84H38Z" fill="#454C55"/>
+          <path d="M16 38H30L34 43V84H16Z" fill="#454C55"/>
+        </svg>
+        <h3>Aplicativos</h3>
+        <p>App de celular, aplicação web e painel administrativo. Sistema interno
+        feito sob medida para o seu jeito de trabalhar.</p>
+      </article>
+
+      <article class="frente aparece">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Design">
+          <path d="M16 16H62V34H16Z" fill="#454C55"/>
+          <path d="M66 16H84V62H66Z" fill="#454C55"/>
+          <path d="M38 66H84V84H38Z" fill="#F2C230"/>
+          <path d="M16 38H30L34 43V84H16Z" fill="#454C55"/>
+        </svg>
+        <h3>Design</h3>
+        <p>Feed, stories, carrossel e capa de destaque. Identidade visual, cardápio,
+        flyer e cartão.</p>
+      </article>
+
+      <article class="frente aparece">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Automação">
+          <path d="M16 16H62V34H16Z" fill="#454C55"/>
+          <path d="M66 16H84V62H66Z" fill="#454C55"/>
+          <path d="M38 66H84V84H38Z" fill="#454C55"/>
+          <path d="M16 38H30L34 43V84H16Z" fill="#F2C230"/>
+        </svg>
+        <h3>Automação</h3>
+        <p>O que você faz repetido na mão, a máquina faz. Robô que responde no
+        WhatsApp, extração de contatos, CRM, relatório que se monta sozinho.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMO FUNCIONA ============ -->
+<section class="secao escuro" id="como">
+  <div class="env">
+    <span class="rotulo">Como funciona</span>
+    <h2>Três passos, sem burocracia.</h2>
+
+    <div class="passos">
+      <div class="passo aparece">
+        <span class="passo-n">PASSO 1</span>
+        <h3>Você me conta</h3>
+        <p>Me chama no direct e diz o que precisa. Eu respondo com escopo, prazo e
+        preço — número fechado, antes de qualquer coisa começar.</p>
+      </div>
+      <div class="passo aparece">
+        <span class="passo-n">PASSO 2</span>
+        <h3>Você me entrega o conteúdo</h3>
+        <p>Textos, fotos e logo. O prazo começa a contar aqui, não no primeiro
+        "oi". Se você não tem o conteúdo, eu ajudo a montar.</p>
+      </div>
+      <div class="passo aparece">
+        <span class="passo-n">PASSO 3</span>
+        <h3>Eu ponho no ar</h3>
+        <p>Você acompanha o link enquanto fica pronto. Aprovou, entra no ar. Depois
+        continuo por perto para ajuste e manutenção.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PREÇO ============ -->
+<section class="secao" id="preco">
+  <div class="env">
+    <span class="rotulo">Preço</span>
+    <h2>Preço eu digo na primeira conversa.</h2>
+    <p class="secao-intro">
+      Com número, antes de começar. Nada de "sob consulta" nem de orçamento que
+      demora três dias para chegar.
+    </p>
+
+    <!-- ================================================================
+         QUANDO VOCÊ FECHAR OS VALORES, TROQUE ESTA LISTA POR:
+
+         <ul class="preco-lista">
+           <li>Site de uma página — a partir de R$ 000</li>
+           <li>Site de até 5 páginas — a partir de R$ 000</li>
+           <li>Robô de WhatsApp — a partir de R$ 000</li>
+           <li>Pacote de artes do mês — a partir de R$ 000</li>
+         </ul>
+
+         Os quatro itens abaixo (escopo, pagamento, mensalidade, titularidade)
+         continuam valendo — mova-os para depois da lista de valores.
+
+         Preço na página é o que mais aumenta contato de negócio pequeno.
+         ================================================================ -->
+
+    <ul class="preco-lista">
+      <li>
+        Escopo escrito antes de começar: você sabe exatamente o que vai receber.
+      </li>
+      <li>
+        Metade na hora de começar, metade quando entrar no ar.
+      </li>
+      <li>
+        Sem mensalidade obrigatória. Manutenção só se você quiser.
+      </li>
+      <li>
+        O site é seu. Domínio e conta ficam no seu nome, não no meu.
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ FECHO ============ -->
+<section class="fecho" id="contato">
+  <div class="env">
+    <h2>Me diz o que você precisa.</h2>
+    <p>
+      Eu respondo com prazo e preço. Se não for para mim, eu falo na hora
+      em vez de enrolar.
+    </p>
+    <a class="btn" href="https://instagram.com/vidalmastudio">Chama no direct</a>
+
+    <!-- ================================================================
+         QUANDO TIVER O WHATSAPP BUSINESS, TROQUE O BOTÃO ACIMA POR ESTE
+         (só o DDI 55 + DDD + número, sem espaço, traço ou parêntese):
+
+         <a class="btn" href="https://wa.me/5511000000000?text=Oi%2C%20vim%20pelo%20site%20da%20Vidalma">
+           Chamar no WhatsApp
+         </a>
+
+         E deixe o direct como link secundário logo abaixo.
+         ================================================================ -->
+  </div>
+</section>
+
+<!-- ============ RODAPÉ ============ -->
+<footer class="rodape">
+  <div class="env">
+    <div class="rodape-linha">
+      <span>Vidalma · estúdio digital · atendimento remoto para todo o Brasil</span>
+      <span>
+        <a href="https://instagram.com/vidalmastudio">@vidalmastudio</a>
+      </span>
+      <span class="faixa" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var alvos = document.querySelectorAll('.aparece');
+  if (!('IntersectionObserver' in window) ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    alvos.forEach(function (e) { e.classList.add('visivel'); });
+    return;
+  }
+  var obs = new IntersectionObserver(function (itens) {
+    itens.forEach(function (i) {
+      if (i.isIntersecting) { i.target.classList.add('visivel'); obs.unobserve(i.target); }
+    });
+  }, { threshold: 0.15 });
+  alvos.forEach(function (e) { obs.observe(e); });
+})();
+</script>
+
+</body>
+</html>
