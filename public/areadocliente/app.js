@@ -435,6 +435,99 @@
     });
   }
 
+  function telaGestao(sessao) {
+    // só o master entra; quem não for volta para o painel comum
+    sb.from('masters').select('id').eq('id', sessao.user.id).then(function (r) {
+      if (!r.data || !r.data.length) { window.location.replace('inicio.html'); return; }
+      carregarClientes();
+    }, function () { window.location.replace('inicio.html'); });
+
+    function carregarClientes() {
+      sb.from('clientes').select('nome,email,criado_em').order('criado_em', { ascending: false })
+        .then(function (r) {
+          var lista = q('#lista-clientes');
+          if (r.error || !r.data) return;
+          lista.innerHTML = '';
+          r.data.forEach(function (c, i) {
+            var borda = i === r.data.length - 1 ? '' : 'border-bottom:1.5px solid #E9EBEA;';
+            lista.appendChild(el('<div style="padding:16px;display:flex;flex-direction:column;gap:4px;' + borda + '">' +
+              '<span style="font:500 16px ' + FONTE_TXT + ';color:#101418">' + esc(c.nome) + '</span>' +
+              '<span style="font:400 14px ' + FONTE_TXT + ';color:#454C55">' + esc(c.email) + ' · desde ' + dataCurta(c.criado_em) + '</span></div>'));
+          });
+        });
+    }
+
+    function centavos(txt) {
+      txt = String(txt || '').trim().replace(/[R$\s]/g, '');
+      if (!txt) return null;
+      if (/^\d+[.,]\d{1,2}$/.test(txt)) {
+        var partes = txt.replace(',', '.').split('.');
+        return Number(partes[0]) * 100 + Math.round(Number('0.' + partes[1]) * 100);
+      }
+      var n = Number(txt.replace(/\./g, '').replace(',', '.'));
+      if (!isFinite(n) || n <= 0) return null;
+      return Math.round(n * 100);
+    }
+
+    q('#form-cadastro').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var botao = q('#form-cadastro button[type="submit"]');
+      var erro = q('#erro-cadastro'), erroTexto = q('#erro-cadastro-texto');
+      erro.style.display = 'none';
+      q('#sucesso').style.display = 'none';
+
+      var valorTxt = q('#c-valor').value.trim();
+      var valor = centavos(valorTxt);
+      if (valorTxt && valor === null) {
+        erroTexto.textContent = 'Não entendi o valor. Escreva como 900 ou 900,50.';
+        erro.style.display = 'flex';
+        return;
+      }
+      var cobranca = q('#c-cobranca').value.trim();
+      if (cobranca && valor === null) {
+        erroTexto.textContent = 'A cobrança precisa de um valor. Preencha "Valor em reais".';
+        erro.style.display = 'flex';
+        return;
+      }
+
+      botao.disabled = true;
+      botao.textContent = 'Cadastrando…';
+      var email = q('#c-email').value.trim().toLowerCase();
+      var senha = q('#c-senha').value.trim();
+      sb.rpc('cadastrar_cliente', {
+        p_email: email,
+        p_nome: q('#c-nome').value.trim(),
+        p_senha: senha || null,
+        p_projeto: q('#c-projeto').value.trim() || null,
+        p_tipo: q('#c-tipo').value,
+        p_cobranca: cobranca || null,
+        p_valor_centavos: valor,
+        p_vencimento: q('#c-vencimento').value || null
+      }).then(function (r) {
+        botao.disabled = false;
+        botao.textContent = 'Cadastrar cliente';
+        if (r.error) {
+          var m = r.error.message || '';
+          if (m.indexOf('existe') >= 0) erroTexto.textContent = 'Já existe um login com esse e-mail.';
+          else if (m.indexOf('master') >= 0) erroTexto.textContent = 'Esta conta não é a do master.';
+          else erroTexto.textContent = 'Não consegui cadastrar agora. Tenta de novo em instantes.';
+          erro.style.display = 'flex';
+          return;
+        }
+        q('#sucesso-convite').textContent = 'Convite pronto para o WhatsApp: "Tua área do cliente está no ar: vidalma.com.br/areadocliente — entra com teu e-mail ' + email +
+          (senha ? ' e a senha ' + senha : ', clicando em Receber link no e-mail') + '."';
+        q('#sucesso').style.display = 'flex';
+        q('#form-cadastro').reset();
+        carregarClientes();
+      }, function () {
+        botao.disabled = false;
+        botao.textContent = 'Cadastrar cliente';
+        erroTexto.textContent = 'Não consegui cadastrar agora. Tenta de novo em instantes.';
+        erro.style.display = 'flex';
+      });
+    });
+  }
+
   // ---------------- roteador ----------------
   var raiz = q('[data-screen-label]');
   var tela = raiz ? raiz.getAttribute('data-screen-label') : '';
@@ -461,6 +554,7 @@
       else if (tela.indexOf('05 Pagamentos') === 0) telaPagamentos();
       else if (tela.indexOf('09 Nova') === 0) telaNova(s);
       else if (tela.indexOf('10 Solicitacao') === 0) telaSolicitacao(s);
+      else if (tela.indexOf('21 Gestao') === 0) telaGestao(s);
     });
   }
 })();

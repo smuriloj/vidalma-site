@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestão · Vidalma</title>
+<meta name="theme-color" content="#101418">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="painel.css">
+<style>
+@font-face { font-family: 'Chivo'; font-weight: 100 900; font-display: swap; src: url('fontes/Chivo-variable-latin.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 100 900; font-display: swap; src: url('fontes/DMSans-variable-latin.woff2') format('woff2'); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #E9EBEA; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+a { color: #101418; }
+a:hover { color: #454C55; }
+input, textarea, select { font: 400 16px 'DM Sans', system-ui, sans-serif; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: #101418; box-shadow: 0 0 0 3px #F2C230; }
+button { font-family: 'Chivo', system-ui, sans-serif; }
+::placeholder { color: #454C55; opacity: 1; }
+.campo { display: flex; flex-direction: column; gap: 8px; }
+.campo label { font: 500 13px 'DM Sans'; color: #101418; }
+.campo input, .campo select { background: #FFFFFF; border: 1.5px solid #454C55; border-radius: 3px; padding: 0 16px; font: 400 16px 'DM Sans'; color: #101418; width: 100%; height: 48px; }
+.campo select { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M4 8H20L12 18Z\' fill=\'%23101418\'/></svg>'); background-repeat: no-repeat; background-position: right 16px center; background-size: 16px; }
+.dica { font: 400 13px/1.5 'DM Sans'; color: #454C55; margin: 0; }
+@media (min-width: 720px) { .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; } }
+</style>
+</head>
+<body>
+<div data-screen-label="21 Gestao" class="casca">
+<div class="barra">
+<div class="barra-env">
+<svg viewBox="0 0 270 78" width="130" style="height:auto;display:block"><g transform="translate(0 3) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="56" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">vidalma</text></svg>
+<a href="entrar.html" style="min-height:44px;display:flex;align-items:center;font:500 15px 'DM Sans';color:#E9EBEA;text-decoration:none">Sair</a>
+</div>
+</div>
+<div class="conteudo" style="gap:32px">
+<a href="inicio.html" style="min-height:44px;display:flex;align-items:center;font:400 16px 'DM Sans';color:#101418">Voltar ao painel</a>
+<span style="font:800 32px/1.05 'Chivo';letter-spacing:-.025em;color:#101418">Gestão</span>
+
+<div style="background:#FFFFFF;border:1.5px solid #E9EBEA;border-top:4px solid #101418;padding:24px;display:flex;flex-direction:column;gap:24px">
+<span style="font:700 21px/1.2 'Chivo';letter-spacing:-.02em;color:#101418">Cadastrar cliente</span>
+<p class="dica">Preencha e o sistema cria tudo de uma vez: o login, o cadastro e — se você preencher — o primeiro projeto e a primeira cobrança.</p>
+
+<form id="form-cadastro" style="display:flex;flex-direction:column;gap:24px">
+<div class="dupla" style="display:flex;flex-direction:column;gap:24px">
+<div class="campo">
+<label for="c-nome">Primeiro nome</label>
+<input id="c-nome" type="text" required placeholder="Marcos" autocomplete="off">
+</div>
+<div class="campo">
+<label for="c-email">E-mail do cliente</label>
+<input id="c-email" type="email" required inputmode="email" placeholder="cliente@email.com.br" autocomplete="off">
+</div>
+</div>
+<div class="campo">
+<label for="c-senha">Senha (opcional)</label>
+<input id="c-senha" type="text" placeholder="Deixe vazio para entrar só pelo link no e-mail" autocomplete="off">
+</div>
+<div class="dupla" style="display:flex;flex-direction:column;gap:24px">
+<div class="campo">
+<label for="c-projeto">Projeto (opcional)</label>
+<input id="c-projeto" type="text" placeholder="Site da Barbearia Rocha" autocomplete="off">
+</div>
+<div class="campo">
+<label for="c-tipo">Tipo do projeto</label>
+<select id="c-tipo">
+<option value="site">Site</option>
+<option value="aplicativo">Aplicativo</option>
+<option value="design">Design</option>
+<option value="automacao">Automação</option>
+</select>
+</div>
+</div>
+<div class="dupla" style="display:flex;flex-direction:column;gap:24px">
+<div class="campo">
+<label for="c-cobranca">Primeira cobrança (opcional)</label>
+<input id="c-cobranca" type="text" placeholder="Site · entrada" autocomplete="off">
+</div>
+<div class="campo">
+<label for="c-valor">Valor em reais</label>
+<input id="c-valor" type="text" inputmode="decimal" placeholder="900 ou 900,50" autocomplete="off">
+</div>
+</div>
+<div class="campo">
+<label for="c-vencimento">Vencimento da cobrança</label>
+<input id="c-vencimento" type="date">
+</div>
+<div id="erro-cadastro" class="auth-erro" role="alert">
+<span></span>
+<p id="erro-cadastro-texto">Não deu certo. Tenta de novo.</p>
+</div>
+<button type="submit" style="height:48px;background:#F2C230;border:0;border-radius:3px;width:100%;font:700 16px 'Chivo';color:#101418;cursor:pointer">Cadastrar cliente</button>
+</form>
+</div>
+
+<div id="sucesso" style="background:#101418;padding:16px;display:none;flex-direction:column;gap:8px">
+<span style="font:700 18px 'Chivo';letter-spacing:-.02em;color:#F2C230">Cliente cadastrado.</span>
+<p id="sucesso-convite" style="font:400 15px/1.55 'DM Sans';color:#E9EBEA;margin:0"></p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<span style="font:500 12px 'DM Sans';letter-spacing:.1em;text-transform:uppercase;color:#454C55">Clientes</span>
+<div id="lista-clientes" style="background:#FFFFFF;border:1.5px solid #E9EBEA;display:flex;flex-direction:column"></div>
+</div>
+</div>
+</div>
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>
