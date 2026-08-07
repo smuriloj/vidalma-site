@@ -120,12 +120,11 @@
     var email = q('#email');
     var lembrado = param('email');
     if (lembrado && !email.value) email.value = lembrado;
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var botao = form.querySelector('button');
+
+    function mandarLink(botao) {
+      var end = email.value.trim();
       botao.disabled = true;
       botao.textContent = 'Enviando…';
-      var end = email.value.trim();
       sb.auth.signInWithOtp({
         email: end,
         options: { shouldCreateUser: false, emailRedirectTo: abs('inicio.html') }
@@ -138,7 +137,43 @@
       }, function () {
         window.location.href = 'entrar-erro.html?email=' + encodeURIComponent(end);
       });
+    }
+
+    // "Entrar": com senha quando a tela tem o campo; sem ele (tela de erro), manda o link
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var botao = form.querySelector('button[type="submit"]');
+      var senha = q('#senha');
+      if (!senha) return mandarLink(botao);
+      var erro = q('#erro-senha');
+      if (erro) erro.style.display = 'none';
+      botao.disabled = true;
+      botao.textContent = 'Entrando…';
+      sb.auth.signInWithPassword({ email: email.value.trim(), password: senha.value })
+        .then(function (r) {
+          if (r.error) {
+            botao.disabled = false;
+            botao.textContent = 'Entrar';
+            if (erro) erro.style.display = 'flex';
+            senha.focus();
+            return;
+          }
+          window.location.replace('inicio.html');
+        }, function () {
+          botao.disabled = false;
+          botao.textContent = 'Entrar';
+          if (erro) erro.style.display = 'flex';
+        });
     });
+
+    // botão do link mágico: valida só o e-mail e dispara
+    var btnLink = q('#btn-link');
+    if (btnLink) {
+      btnLink.addEventListener('click', function () {
+        if (!email.checkValidity()) { email.reportValidity(); return; }
+        mandarLink(btnLink);
+      });
+    }
   }
 
   function telaLinkEnviado() {

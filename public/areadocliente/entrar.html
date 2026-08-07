@@ -25,15 +25,34 @@ button { font-family: 'Chivo', system-ui, sans-serif; }
 <div data-screen-label="01 Entrar" class="auth">
 <svg class="auth-dagua" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M16 16H62V34H16Z" fill="#454C55"></path><path d="M66 16H84V62H66Z" fill="#454C55"></path><path d="M38 66H84V84H38Z" fill="#454C55"></path><path d="M16 38H30L34 43V84H16Z" fill="#454C55"></path></svg>
 <div class="auth-coluna">
-<svg viewBox="0 0 300 84" width="240" style="height:auto;display:block"><g transform="translate(0 6) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="46" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">vidalma</text><text x="91" y="68" font-family="DM Sans" font-size="10" font-weight="500" letter-spacing="0.9" fill="#E9EBEA">TODO O DIGITAL DO SEU NEGÓCIO</text></svg>
-<p style="font:400 17px/1.55 'DM Sans';color:#E9EBEA;margin:0">Digite seu e-mail. Eu mando um link e você entra clicando nele. Sem senha para decorar.</p>
+<svg viewBox="0 0 300 84" width="200" style="height:auto;display:block" role="img" aria-label="Vidalma — todo o digital do seu negócio"><g transform="translate(0 6) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="46" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">vidalma</text><text x="91" y="68" font-family="DM Sans" font-size="10" font-weight="500" letter-spacing="0.9" fill="#E9EBEA">TODO O DIGITAL DO SEU NEGÓCIO</text></svg>
+
+<div class="auth-cartao">
+<span style="font:800 24px/1.1 'Chivo';letter-spacing:-.02em;color:#101418">Entrar</span>
+<p style="font:400 15px/1.55 'DM Sans';color:#454C55;margin:0">Com senha, ou com um link que eu mando no seu e-mail. Você escolhe.</p>
+
 <form id="form-entrar" style="display:flex;flex-direction:column;gap:24px">
 <div style="display:flex;flex-direction:column;gap:8px">
-<label for="email" style="font:500 13px 'DM Sans';color:#E9EBEA">Seu e-mail</label>
+<label for="email" style="font:500 13px 'DM Sans';color:#101418">Seu e-mail</label>
 <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required placeholder="voce@seuemail.com.br" style="background:#FFFFFF;border:1.5px solid #454C55;border-radius:3px;padding:0 16px;font:400 16px 'DM Sans';color:#101418;width:100%;height:48px">
 </div>
-<button type="submit" style="height:48px;background:#F2C230;border:0;border-radius:3px;width:100%;font:700 16px 'Chivo';color:#101418;cursor:pointer">Receber o link</button>
+<div style="display:flex;flex-direction:column;gap:8px">
+<label for="senha" style="font:500 13px 'DM Sans';color:#101418">Senha</label>
+<input id="senha" name="senha" type="password" autocomplete="current-password" required placeholder="Sua senha" style="background:#FFFFFF;border:1.5px solid #454C55;border-radius:3px;padding:0 16px;font:400 16px 'DM Sans';color:#101418;width:100%;height:48px">
+</div>
+<div id="erro-senha" class="auth-erro" role="alert">
+<span></span>
+<p>E-mail e senha não bateram. Confere os dois, ou entra pelo link aí embaixo.</p>
+</div>
+<button type="submit" style="height:48px;background:#F2C230;border:0;border-radius:3px;width:100%;font:700 16px 'Chivo';color:#101418;cursor:pointer">Entrar</button>
 </form>
+
+<div class="auth-ou">ou</div>
+
+<button type="button" id="btn-link" style="height:48px;background:#FFFFFF;border:2px solid #101418;border-radius:3px;width:100%;font:700 15px 'Chivo';color:#101418;cursor:pointer">Receber link no e-mail</button>
+<p style="font:400 13px/1.5 'DM Sans';color:#454C55;margin:0">O link entra sem senha — e serve também para quando a senha fugir da memória.</p>
+</div>
+
 </div>
 </div>
 <script defer src="supabase.js"></script>
