@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedido · Gestão Vidalma</title>
+<meta name="theme-color" content="#101418">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="painel.css">
+<style>
+@font-face { font-family: 'Chivo'; font-weight: 100 900; font-display: swap; src: url('fontes/Chivo-variable-latin.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 100 900; font-display: swap; src: url('fontes/DMSans-variable-latin.woff2') format('woff2'); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #FFFFFF; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+a { color: #101418; }
+a:hover { color: #454C55; }
+input, textarea, select { font: 400 16px 'DM Sans', system-ui, sans-serif; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: #101418; box-shadow: 0 0 0 3px #F2C230; }
+button { font-family: 'Chivo', system-ui, sans-serif; }
+::placeholder { color: #454C55; opacity: 1; }
+.btn-estado { height: 44px; background: #FFFFFF; border: 2px solid #101418; border-radius: 3px; padding: 0 16px; font: 700 14px 'Chivo'; color: #101418; cursor: pointer; }
+</style>
+</head>
+<body>
+<div data-screen-label="22 GestaoPedido" class="casca casca-branca">
+<div class="barra">
+<div class="barra-env">
+<svg viewBox="0 0 270 78" width="130" style="height:auto;display:block"><g transform="translate(0 3) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="56" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">vidalma</text></svg>
+<a href="entrar.html" style="min-height:44px;display:flex;align-items:center;font:500 15px 'DM Sans';color:#E9EBEA;text-decoration:none">Sair</a>
+</div>
+</div>
+<div class="conteudo" style="gap:24px">
+<a href="gestao.html" style="min-height:44px;display:flex;align-items:center;font:400 16px 'DM Sans';color:#101418">Voltar à gestão</a>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span id="s-titulo" style="font:800 26px/1.15 'Chivo';letter-spacing:-.025em;color:#101418"></span>
+<span id="s-meta" style="font:400 14px 'DM Sans';color:#454C55"></span>
+<span id="s-etiqueta" style="display:none"></span>
+</div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button type="button" id="btn-andamento" class="btn-estado">Em andamento</button>
+<button type="button" id="btn-aguardando" class="btn-estado">Aguardando cliente</button>
+<button type="button" id="btn-concluida" class="btn-estado">Concluída</button>
+</div>
+
+<div id="conversa" style="display:flex;flex-direction:column;gap:24px"></div>
+
+<form id="form-resposta" style="display:flex;flex-direction:column;gap:12px;border-top:1.5px solid #E9EBEA;padding-top:24px">
+<textarea id="resposta" name="resposta" rows="3" aria-label="Escreva sua resposta" placeholder="Responder como Vidalma" style="background:#FFFFFF;border:1.5px solid #454C55;border-radius:3px;padding:13px 16px;font:400 16px/1.55 'DM Sans';color:#101418;width:100%;resize:vertical;min-height:96px"></textarea>
+<button type="submit" style="height:48px;background:#F2C230;border:0;border-radius:3px;width:100%;font:700 16px 'Chivo';color:#101418;cursor:pointer">Responder</button>
+</form>
+</div>
+</div>
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>

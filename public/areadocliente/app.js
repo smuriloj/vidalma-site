@@ -440,6 +440,8 @@
     sb.from('masters').select('id').eq('id', sessao.user.id).then(function (r) {
       if (!r.data || !r.data.length) { window.location.replace('inicio.html'); return; }
       carregarClientes();
+      carregarPedidos();
+      carregarCobrancas();
     }, function () { window.location.replace('inicio.html'); });
 
     function carregarClientes() {
@@ -453,6 +455,61 @@
             lista.appendChild(el('<div style="padding:16px;display:flex;flex-direction:column;gap:4px;' + borda + '">' +
               '<span style="font:500 16px ' + FONTE_TXT + ';color:#101418">' + esc(c.nome) + '</span>' +
               '<span style="font:400 14px ' + FONTE_TXT + ';color:#454C55">' + esc(c.email) + ' · desde ' + dataCurta(c.criado_em) + '</span></div>'));
+          });
+        });
+    }
+
+    function carregarPedidos() {
+      sb.from('solicitacoes').select('id,titulo,estado,criada_em,concluida_em,clientes(nome)')
+        .order('criada_em', { ascending: false }).limit(20).then(function (r) {
+          var lista = q('#lista-pedidos');
+          if (r.error || !r.data || !lista) return;
+          lista.innerHTML = '';
+          if (!r.data.length) {
+            lista.appendChild(el('<p style="font:400 15px/1.5 ' + FONTE_TXT + ';color:#454C55;margin:0;padding:16px">Nenhum pedido ainda.</p>'));
+            return;
+          }
+          r.data.forEach(function (s, i) {
+            var borda = i === r.data.length - 1 ? '' : 'border-bottom:1.5px solid #E9EBEA;';
+            var cor = s.estado === 'concluida' ? '#454C55' : '#101418';
+            var rodape = s.estado === 'concluida'
+              ? '<span style="font:500 14px ' + FONTE_TXT + ';color:#454C55;margin-top:4px">Concluída' + (s.concluida_em ? ' em ' + dataCurta(s.concluida_em) : '') + '</span>'
+              : etiqueta(s.estado, true);
+            lista.appendChild(el('<a href="gestao-pedido.html?id=' + s.id + '" style="padding:16px;display:flex;flex-direction:column;gap:8px;' + borda + 'text-decoration:none">' +
+              '<span style="font:500 16px ' + FONTE_TXT + ';color:' + cor + '">' + esc(s.titulo) + '</span>' +
+              '<span style="font:400 14px ' + FONTE_TXT + ';color:#454C55">' + esc((s.clientes && s.clientes.nome) || '') + ' · ' + dataCurta(s.criada_em) + '</span>' + rodape + '</a>'));
+          });
+        });
+    }
+
+    function carregarCobrancas() {
+      sb.from('pagamentos').select('id,descricao,valor_centavos,vencimento,clientes(nome)')
+        .eq('pago', false).order('vencimento').then(function (r) {
+          var lista = q('#lista-cobrancas');
+          if (r.error || !r.data || !lista) return;
+          lista.innerHTML = '';
+          if (!r.data.length) {
+            lista.appendChild(el('<p style="font:400 15px/1.5 ' + FONTE_TXT + ';color:#454C55;margin:0;padding:16px">Tudo pago. Nenhuma cobrança em aberto.</p>'));
+            return;
+          }
+          r.data.forEach(function (p, i) {
+            var borda = i === r.data.length - 1 ? '' : 'border-bottom:1.5px solid #E9EBEA;';
+            var dd = diasAte(p.vencimento);
+            var quando = (dd < 0 ? 'Venceu em ' : 'Vence em ') + dataCurta(p.vencimento);
+            var linha = el('<div style="padding:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;' + borda + '">' +
+              '<div style="display:flex;flex-direction:column;gap:4px">' +
+              '<span style="font:500 16px ' + FONTE_TXT + ';color:#101418">' + esc(p.descricao) + '</span>' +
+              '<span style="font:400 14px ' + FONTE_TXT + ';color:#454C55">' + esc((p.clientes && p.clientes.nome) || '') + ' · ' + quando + ' · ' + dinheiro(p.valor_centavos) + '</span></div>' +
+              '<button type="button" style="height:44px;background:#FFFFFF;border:2px solid #101418;border-radius:3px;padding:0 16px;font:700 14px ' + FONTE_TIT + ';color:#101418;cursor:pointer">Marcar pago</button></div>');
+            linha.querySelector('button').addEventListener('click', function () {
+              var b = linha.querySelector('button');
+              b.disabled = true;
+              b.textContent = 'Marcando…';
+              sb.from('pagamentos').update({ pago: true, pago_em: new Date().toISOString().slice(0, 10) })
+                .eq('id', p.id).then(function () { carregarCobrancas(); },
+                  function () { b.disabled = false; b.textContent = 'Marcar pago'; });
+            });
+            lista.appendChild(linha);
           });
         });
     }
@@ -528,6 +585,98 @@
     });
   }
 
+  function telaGestaoPedido(sessao) {
+    var id = param('id');
+    if (!id) { window.location.replace('gestao.html'); return; }
+    var nomeCliente = 'Cliente';
+
+    sb.from('masters').select('id').eq('id', sessao.user.id).then(function (r) {
+      if (!r.data || !r.data.length) { window.location.replace('inicio.html'); return; }
+      cabecalho();
+      conversa();
+    }, function () { window.location.replace('inicio.html'); });
+
+    function cabecalho() {
+      sb.from('solicitacoes').select('titulo,estado,criada_em,concluida_em,clientes(nome),projetos(nome)')
+        .eq('id', id).single().then(function (r) {
+          if (r.error || !r.data) { window.location.replace('gestao.html'); return; }
+          var s = r.data;
+          nomeCliente = (s.clientes && s.clientes.nome) || 'Cliente';
+          q('#s-titulo').textContent = s.titulo;
+          document.title = s.titulo + ' · Gestão Vidalma';
+          q('#s-meta').textContent = nomeCliente +
+            (s.projetos && s.projetos.nome ? ' · ' + s.projetos.nome : '') + ' · ' + dataCurta(s.criada_em);
+          var alvo = q('#s-etiqueta');
+          var novo = s.estado === 'concluida'
+            ? el('<span id="s-etiqueta" style="font:500 14px ' + FONTE_TXT + ';color:#454C55">Concluída' + (s.concluida_em ? ' em ' + dataCurta(s.concluida_em) : '') + '</span>')
+            : el(etiqueta(s.estado, false).replace('<span ', '<span id="s-etiqueta" '));
+          alvo.replaceWith(novo);
+          pintarBotoes(s.estado);
+        });
+    }
+
+    function pintarBotoes(estado) {
+      [['btn-andamento', 'em_andamento'], ['btn-aguardando', 'aguardando_voce'], ['btn-concluida', 'concluida']].forEach(function (par) {
+        var b = q('#' + par[0]);
+        if (!b) return;
+        var ativo = estado === par[1];
+        b.style.background = ativo ? '#101418' : '#FFFFFF';
+        b.style.color = ativo ? '#E9EBEA' : '#101418';
+      });
+    }
+
+    var mapa = { 'btn-andamento': 'em_andamento', 'btn-aguardando': 'aguardando_voce', 'btn-concluida': 'concluida' };
+    Object.keys(mapa).forEach(function (bid) {
+      var b = q('#' + bid);
+      if (b) b.addEventListener('click', function () {
+        sb.from('solicitacoes').update({
+          estado: mapa[bid],
+          concluida_em: mapa[bid] === 'concluida' ? new Date().toISOString().slice(0, 10) : null
+        }).eq('id', id).then(function () { cabecalho(); });
+      });
+    });
+
+    function conversa() {
+      sb.from('mensagens').select('*').eq('solicitacao_id', id).order('criada_em').then(function (r) {
+        var caixa = q('#conversa');
+        if (r.error) return avisoErro(caixa);
+        caixa.innerHTML = '';
+        r.data.forEach(function (m) {
+          if (m.autor === 'vidalma') {
+            caixa.appendChild(el('<div style="align-self:flex-end;max-width:88%;display:flex;flex-direction:column;gap:8px;align-items:flex-end">' +
+              '<span style="font:500 12px ' + FONTE_TXT + ';color:#454C55">Vidalma · ' + dataHora(m.criada_em) + '</span>' +
+              '<div style="background:#E9EBEA;padding:16px;font:400 16px/1.55 ' + FONTE_TXT + ';color:#101418">' + esc(m.texto) + '</div></div>'));
+          } else {
+            caixa.appendChild(el('<div style="align-self:flex-start;max-width:88%;display:flex;flex-direction:column;gap:8px">' +
+              '<span style="font:500 12px ' + FONTE_TXT + ';color:#454C55">' + esc(nomeCliente) + ' · ' + dataHora(m.criada_em) + '</span>' +
+              '<div style="background:#FFFFFF;border:1.5px solid #E9EBEA;padding:16px;font:400 16px/1.55 ' + FONTE_TXT + ';color:#101418">' + esc(m.texto) + '</div></div>'));
+          }
+        });
+      });
+    }
+
+    q('#form-resposta').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var campo = q('#resposta');
+      var texto = campo.value.trim();
+      if (!texto) { campo.focus(); return; }
+      var botao = q('#form-resposta button');
+      botao.disabled = true;
+      botao.textContent = 'Enviando…';
+      sb.from('mensagens').insert({ solicitacao_id: id, autor: 'vidalma', texto: texto })
+        .then(function (r) {
+          botao.disabled = false;
+          botao.textContent = 'Responder';
+          if (r.error) return;
+          campo.value = '';
+          conversa();
+        }, function () {
+          botao.disabled = false;
+          botao.textContent = 'Responder';
+        });
+    });
+  }
+
   // ---------------- roteador ----------------
   var raiz = q('[data-screen-label]');
   var tela = raiz ? raiz.getAttribute('data-screen-label') : '';
@@ -554,6 +703,7 @@
       else if (tela.indexOf('05 Pagamentos') === 0) telaPagamentos();
       else if (tela.indexOf('09 Nova') === 0) telaNova(s);
       else if (tela.indexOf('10 Solicitacao') === 0) telaSolicitacao(s);
+      else if (tela.indexOf('22 GestaoPedido') === 0) telaGestaoPedido(s);
       else if (tela.indexOf('21 Gestao') === 0) telaGestao(s);
     });
   }
