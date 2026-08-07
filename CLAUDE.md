@@ -25,3 +25,10 @@ Vêm do manual da marca. Antes de publicar qualquer alteração:
   conteúdo". Prazo sem escopo é promessa vaga.
 - Nada de "solução", "inovador", "disruptivo", "expertise", "jornada do
   cliente".
+
+## Exceção documentada: área do cliente
+
+`public/areadocliente/` segue o LEIA-ME do próprio pacote da marca, que para
+o painel permite duas coisas a mais: `#FFFFFF` como cor de superfície (cartão
+e campo, nunca fundo de tela) e o anel de foco amarelo feito com box-shadow
+de blur zero — é um anel, não uma sombra. Todo o resto vale igual.
