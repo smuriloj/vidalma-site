@@ -6,6 +6,7 @@
 <title>Entrar · Vidalma</title>
 <meta name="theme-color" content="#101418">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="painel.css">
 <style>
 @font-face { font-family: 'Chivo'; font-weight: 100 900; font-display: swap; src: url('fontes/Chivo-variable-latin.woff2') format('woff2'); }
 @font-face { font-family: 'DM Sans'; font-weight: 100 900; font-display: swap; src: url('fontes/DMSans-variable-latin.woff2') format('woff2'); }
@@ -21,7 +22,9 @@ button { font-family: 'Chivo', system-ui, sans-serif; }
 </style>
 </head>
 <body>
-<div data-screen-label="03 Erro" style="width:100%;max-width:560px;margin:0 auto;min-height:100vh;background:#101418;box-sizing:border-box;padding:32px;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<div data-screen-label="03 Erro" class="auth">
+<svg class="auth-dagua" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M16 16H62V34H16Z" fill="#454C55"></path><path d="M66 16H84V62H66Z" fill="#454C55"></path><path d="M38 66H84V84H38Z" fill="#454C55"></path><path d="M16 38H30L34 43V84H16Z" fill="#454C55"></path></svg>
+<div class="auth-coluna">
 <svg viewBox="0 0 300 84" width="240" style="height:auto;display:block"><g transform="translate(0 6) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="46" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">vidalma</text><text x="91" y="68" font-family="DM Sans" font-size="10" font-weight="500" letter-spacing="0.9" fill="#E9EBEA">TODO O DIGITAL DO SEU NEGÓCIO</text></svg>
 <form id="form-entrar" style="display:flex;flex-direction:column;gap:24px">
 <div style="display:flex;flex-direction:column;gap:8px">
@@ -34,6 +37,7 @@ button { font-family: 'Chivo', system-ui, sans-serif; }
 </div>
 <button type="submit" style="height:48px;background:#F2C230;border:0;border-radius:3px;width:100%;font:700 16px 'Chivo';color:#101418;cursor:pointer">Tentar de novo</button>
 </form>
+</div>
 </div>
 <script defer src="supabase.js"></script>
 <script defer src="config.js"></script>

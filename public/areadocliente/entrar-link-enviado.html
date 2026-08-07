@@ -6,6 +6,7 @@
 <title>Link enviado · Vidalma</title>
 <meta name="theme-color" content="#101418">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="painel.css">
 <style>
 @font-face { font-family: 'Chivo'; font-weight: 100 900; font-display: swap; src: url('fontes/Chivo-variable-latin.woff2') format('woff2'); }
 @font-face { font-family: 'DM Sans'; font-weight: 100 900; font-display: swap; src: url('fontes/DMSans-variable-latin.woff2') format('woff2'); }
@@ -21,13 +22,16 @@ button { font-family: 'Chivo', system-ui, sans-serif; }
 </style>
 </head>
 <body>
-<div data-screen-label="02 Link enviado" style="width:100%;max-width:560px;margin:0 auto;min-height:100vh;background:#101418;box-sizing:border-box;padding:32px;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<div data-screen-label="02 Link enviado" class="auth">
+<svg class="auth-dagua" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M16 16H62V34H16Z" fill="#454C55"></path><path d="M66 16H84V62H66Z" fill="#454C55"></path><path d="M38 66H84V84H38Z" fill="#454C55"></path><path d="M16 38H30L34 43V84H16Z" fill="#454C55"></path></svg>
+<div class="auth-coluna">
 <svg viewBox="0 0 300 84" width="240" style="height:auto;display:block"><g transform="translate(0 6) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="46" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">vidalma</text><text x="91" y="68" font-family="DM Sans" font-size="10" font-weight="500" letter-spacing="0.9" fill="#E9EBEA">TODO O DIGITAL DO SEU NEGÓCIO</text></svg>
 <div style="display:flex;flex-direction:column;gap:16px">
 <span style="font:800 26px/1.15 'Chivo';letter-spacing:-.025em;color:#E9EBEA">Link enviado.</span>
 <p style="font:400 17px/1.55 'DM Sans';color:#E9EBEA;margin:0">Mandei para <span id="email-destino" style="font:500 17px 'DM Sans';color:#F2C230">seu e-mail</span>. Abra seu e-mail e clique. O link vale por 1 hora.</p>
 </div>
 <a href="entrar.html" style="min-height:44px;display:flex;align-items:center;font:400 16px 'DM Sans';color:#E9EBEA;text-decoration:underline">Não chegou? Enviar de novo</a>
+</div>
 </div>
 <script defer src="supabase.js"></script>
 <script defer src="config.js"></script>

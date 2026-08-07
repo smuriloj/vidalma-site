@@ -170,7 +170,8 @@
       var sec = q('#sec-projetos');
       if (r.error) return avisoErro(sec);
       if (!r.data.length) { sec.style.display = 'none'; return; }
-      r.data.forEach(function (p) { sec.appendChild(cardProjeto(p)); });
+      var alvo = q('#projetos') || sec; // grade em telas largas
+      r.data.forEach(function (p) { alvo.appendChild(cardProjeto(p)); });
     });
 
     sb.from('solicitacoes').select('id,titulo,estado,concluida_em')
