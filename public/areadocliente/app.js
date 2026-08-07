@@ -403,7 +403,13 @@
   var raiz = q('[data-screen-label]');
   var tela = raiz ? raiz.getAttribute('data-screen-label') : '';
 
-  if (tela.indexOf('01 Entrar') === 0 || tela.indexOf('03 Erro') === 0) {
+  if (tela.indexOf('00 ') === 0) {
+    // porta da pasta: é aqui que o link mágico chega (Site URL do Supabase).
+    // a biblioteca lê o token do endereço e cria a sessão; daí é só encaminhar.
+    sb.auth.getSession().then(function (r) {
+      window.location.replace(r.data && r.data.session ? 'inicio.html' : 'entrar.html');
+    });
+  } else if (tela.indexOf('01 Entrar') === 0 || tela.indexOf('03 Erro') === 0) {
     sb.auth.getSession().then(function (r) {
       if (r.data && r.data.session) window.location.replace('inicio.html');
       else telaEntrar();
