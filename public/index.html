@@ -101,7 +101,14 @@ a:focus-visible,.btn:focus-visible{
 .escuro a:focus-visible{outline-color:var(--nevoa)}
 
 /* ---------- cabeçalho ---------- */
-.topo{background:var(--preto);padding:var(--e5) 0 0}
+.topo{background:var(--preto);padding:var(--e4) 0}
+.topo-linha{display:flex;align-items:center;justify-content:space-between;gap:var(--e3) var(--e5);flex-wrap:wrap}
+.menu{display:flex;align-items:center;gap:var(--e1) var(--e4);flex-wrap:wrap}
+.menu a{color:var(--nevoa);text-decoration:none;font:500 15px/1 var(--texto);min-height:44px;display:inline-flex;align-items:center}
+.menu a:hover{text-decoration:underline}
+.menu a.menu-cliente{font:700 15px/1 var(--titulo);border:2px solid var(--nevoa);border-radius:var(--raio);padding:0 var(--e4)}
+.secao[id],.fecho[id]{scroll-margin-top:88px}
+@media (min-width:900px){.topo{position:sticky;top:0;z-index:10}}
 .marca{display:flex;align-items:center;gap:14px}
 .marca svg{width:38px;height:38px;flex:0 0 auto}
 .marca-nome{
@@ -266,7 +273,7 @@ a:focus-visible,.btn:focus-visible{
 
 <!-- ============ CABEÇALHO ============ -->
 <header class="topo">
-  <div class="env">
+  <div class="env topo-linha">
     <div class="marca">
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vidalma">
         <path d="M16 16H62V34H16Z" fill="#E9EBEA"/>
@@ -279,6 +286,13 @@ a:focus-visible,.btn:focus-visible{
         <span class="marca-assin">todo o digital do seu negócio</span>
       </span>
     </div>
+    <nav class="menu" aria-label="Seções do site">
+      <a href="#frentes">O que eu faço</a>
+      <a href="#como">Como funciona</a>
+      <a href="#preco">Preço</a>
+      <a href="#contato">Contato</a>
+      <a class="menu-cliente" href="/areadocliente/">Área do cliente</a>
+    </nav>
   </div>
 </header>
 
@@ -470,6 +484,7 @@ a:focus-visible,.btn:focus-visible{
     <div class="rodape-linha">
       <span>Vidalma · estúdio digital · atendimento remoto para todo o Brasil</span>
       <span>
+        <a href="/areadocliente/">Área do cliente</a>
         <a href="https://instagram.com/vidalmastudio">@vidalmastudio</a>
       </span>
       <span class="faixa" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
