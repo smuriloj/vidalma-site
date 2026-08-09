@@ -26,6 +26,15 @@ Vêm do manual da marca. Antes de publicar qualquer alteração:
 - Nada de "solução", "inovador", "disruptivo", "expertise", "jornada do
   cliente".
 
+## Exceção documentada: Natiiva
+
+`public/natiiva/` é uma marca agregada com manual próprio (Natiiva Leads):
+paleta, fontes (Bricolage Grotesque, Instrument Serif, Chivo) e regras
+próprias, com endosso Vidalma em texto. As regras deste arquivo não valem
+lá dentro — valem as do manual da Natiiva, guardado no pacote dela. No
+site da Vidalma, a Natiiva aparece só pelo logo monocromático (aço ou
+névoa), dentro da paleta de 4 cores.
+
 ## Exceção documentada: área do cliente
 
 `public/areadocliente/` segue o LEIA-ME do próprio pacote da marca, que para

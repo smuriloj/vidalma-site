@@ -216,6 +216,22 @@ a:focus-visible,.btn:focus-visible{
 }
 .preco-lista li:first-child{border-top:1.5px solid #E9EBEA}
 
+/* ---------- portfólio ---------- */
+.casos{display:grid;grid-template-columns:1fr;gap:var(--e4)}
+@media (min-width:900px){.casos{grid-template-columns:repeat(2,1fr);gap:var(--e5)}}
+.caso{background:var(--nevoa);border:1.5px solid #E9EBEA;border-top:4px solid var(--preto);padding:var(--e5);display:flex;flex-direction:column;gap:var(--e4)}
+.caso-topo{display:flex;align-items:center;justify-content:space-between;gap:var(--e3) var(--e4);flex-wrap:wrap}
+.caso-topo img{height:40px;width:auto;display:block}
+.caso-etiqueta{background:var(--preto);color:var(--nevoa);font:500 12px/1 var(--texto);letter-spacing:.06em;text-transform:uppercase;padding:7px 12px;border-radius:var(--raio)}
+.caso-desc{font-size:16px;line-height:1.55;color:var(--aco);max-width:60ch}
+.caso-entregas{list-style:none;margin:0;padding:0}
+.caso-entregas li{display:flex;justify-content:space-between;align-items:baseline;gap:var(--e4);padding:var(--e3) 0 var(--e3) var(--e4);border-left:3px solid var(--preto);border-bottom:1.5px solid #E9EBEA;font-size:16px}
+.caso-entregas li:first-child{border-top:1.5px solid #E9EBEA}
+.caso-entregas strong{font:700 16px var(--titulo);color:var(--preto);white-space:nowrap}
+.caso-total{font-size:17px;line-height:1.55;color:var(--preto);max-width:60ch}
+.caso-total strong{font-family:var(--titulo)}
+.caso-link{display:inline-flex;align-items:center;min-height:44px;font:500 16px var(--texto);color:var(--preto)}
+
 /* ---------- perguntas ---------- */
 .pergunta{border-top:1.5px solid #454C55}
 .pergunta:last-of-type{border-bottom:1.5px solid #454C55}
@@ -298,6 +314,7 @@ a:focus-visible,.btn:focus-visible{
     <nav class="menu" aria-label="Seções do site">
       <a href="#frentes">O que eu faço</a>
       <a href="#como">Como funciona</a>
+      <a href="#portfolio">Portfólio</a>
       <a href="#preco">Preço</a>
       <a href="#perguntas">Perguntas</a>
       <a href="#contato">Contato</a>
@@ -418,6 +435,44 @@ a:focus-visible,.btn:focus-visible{
         <p>Você acompanha o link enquanto fica pronto. Aprovou, entra no ar. Depois
         continuo por perto para ajuste e manutenção.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PORTFOLIO ============ -->
+<section class="secao" id="portfolio">
+  <div class="env">
+    <span class="rotulo">Portfólio</span>
+    <h2>Feito aqui, no ar de verdade.</h2>
+    <p class="secao-intro">
+      Trabalho publicado, com o tempo de produção medido em relógio —
+      não em promessa.
+    </p>
+
+    <div class="casos">
+
+      <article class="caso aparece">
+        <div class="caso-topo">
+          <img src="/natiiva/marca/natiiva-leads-lockup-mono-454C55.svg" alt="Natiiva Leads">
+          <span class="caso-etiqueta">Criação da casa</span>
+        </div>
+        <p class="caso-desc">
+          Plataforma de leads B2B industriais: 581 mil indústrias da base
+          pública da Receita, com 11 filtros, pontuação de 0 a 100 e
+          acesso controlado por pessoa.
+        </p>
+        <ul class="caso-entregas">
+          <li><span>Identidade visual completa</span><strong>3 horas</strong></li>
+          <li><span>Motor de extração de dados</span><strong>2 horas</strong></li>
+          <li><span>Banco, testes e sistema web</span><strong>5 horas</strong></li>
+        </ul>
+        <p class="caso-total">
+          Da planilha parada ao sistema no ar, com login e controle de
+          acesso: <strong>10 horas de trabalho.</strong>
+        </p>
+        <a class="caso-link" href="/natiiva/">vidalma.com.br/natiiva</a>
+      </article>
+
     </div>
   </div>
 </section>
