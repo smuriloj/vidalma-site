@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Definir senha · Natiiva Leads</title>
+<meta name="theme-color" content="#17120F">
+<meta name="robots" content="noindex">
+<link rel="icon" href="marca/natiiva-favicon-16.svg" type="image/svg+xml">
+<link rel="stylesheet" href="natiiva.css">
+<style>
+.login { min-height: 100vh; display: flex; flex-wrap: wrap; }
+.login-marca {
+  flex: 1.1; min-width: 380px; background: var(--ferro);
+  padding: 64px 56px; display: flex; flex-direction: column; justify-content: space-between; gap: 56px;
+}
+.login-form {
+  flex: 1; min-width: 380px; background: var(--papel);
+  padding: 64px 56px; display: flex; align-items: center; justify-content: center;
+}
+.login-form-env { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 28px; }
+.login-h1 {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700;
+  font-size: 38px; line-height: 1.05; letter-spacing: -0.028em; color: var(--ferro); margin: 0;
+}
+.login-frase { font: italic 400 40px/1.2 'Instrument Serif', Georgia, serif; color: var(--papel); margin: 0; }
+.login-erro { display: none; border-left: 3px solid var(--brasa); padding: 12px 16px; background: var(--papel-elevado); }
+.login-erro p { margin: 0; font: 400 15px/1.5 'Chivo', system-ui, sans-serif; color: var(--ferro); }
+@media (max-width: 760px) {
+  .login-marca, .login-form { padding: 40px 24px; min-width: 100%; }
+  .login-frase { font-size: 28px; }
+}
+</style>
+</head>
+<body data-tela="senha">
+<div class="login">
+
+  <div class="login-marca">
+    <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads — voltar ao site">
+      <div class="marca marca--negativo" style="--corpo:44px;width:max-content" role="img" aria-label="Natiiva Leads">
+        <div class="marca-leads" aria-hidden="true"><span>l</span><span>e</span><span>a</span><span>d</span><span>s</span></div>
+        <div class="marca-filete" aria-hidden="true"></div>
+        <div class="marca-nome" aria-hidden="true">
+          <span>NAT</span>
+          <svg class="marca-simbolo" viewBox="0 0 46 64" aria-hidden="true" focusable="false">
+            <path d="M20 15.36 V3 A3 3 0 0 1 17 0 H7 L0 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M0 15.36 H20 V61 A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z" fill="#C2410C"/>
+            <path d="M26 15.36 V3 A3 3 0 0 1 29 0 H39 L46 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M26 15.36 H46 V61 A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z" fill="#C2410C"/>
+          </svg>
+          <span>VA</span>
+        </div>
+      </div>
+    </a>
+
+    <div style="display:flex;flex-direction:column;gap:24px;max-width:460px">
+      <p class="login-frase">Indústria viva, contato certo</p>
+      <p style="margin:0;font:400 16px/1.6 'Chivo';color:var(--texto-escuro)">
+        A senha fica só com você. A gente não vê e não guarda — quem guarda é o
+        sistema de login, cifrada.
+      </p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="endosso endosso--escuro">Natiiva, uma criação <b>VIDALMA</b></div>
+      <div style="font:400 13px/1.5 'Chivo';color:#5E554C">Dados públicos da Receita Federal · LGPD</div>
+    </div>
+  </div>
+
+  <div class="login-form">
+    <div class="login-form-env">
+
+      <!-- estado 1: conferindo o link -->
+      <div id="conferindo" style="display:flex;flex-direction:column;gap:8px">
+        <span class="rotulo">Um instante</span>
+        <p style="margin:0;font:400 16px 'Chivo';color:var(--cimento)">Conferindo o link.</p>
+      </div>
+
+      <!-- estado 2: link valido, define a senha -->
+      <div id="pode" style="display:none;flex-direction:column;gap:28px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 class="login-h1">Definir senha</h1>
+          <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo)">
+            Escolha a senha que você vai usar para entrar na Natiiva.
+          </p>
+        </div>
+
+        <form id="form-senha" style="display:flex;flex-direction:column;gap:20px">
+          <div class="campo">
+            <label class="rotulo" for="senha">Nova senha</label>
+            <input id="senha" type="password" autocomplete="new-password" required minlength="8" placeholder="Ao menos 8 caracteres">
+          </div>
+          <div class="campo">
+            <label class="rotulo" for="senha2">Repita a senha</label>
+            <input id="senha2" type="password" autocomplete="new-password" required minlength="8" placeholder="A mesma de cima">
+          </div>
+          <div class="login-erro" id="erro" role="alert"><p></p></div>
+          <button type="submit" class="botao botao--brasa botao--largo">Salvar senha</button>
+        </form>
+      </div>
+
+      <!-- estado 3: link ausente ou vencido -->
+      <div id="sem-link" style="display:none;flex-direction:column;gap:20px">
+        <h1 class="login-h1">Link vencido</h1>
+        <div class="aviso">
+          Esse link já foi usado ou passou da validade. Peça outro na tela de entrar,
+          em "Esqueci a senha" — o novo chega em menos de um minuto.
+        </div>
+        <a class="botao botao--invertido" href="login.html">Voltar para entrar</a>
+      </div>
+
+      <!-- estado 4: pronto -->
+      <div id="pronto" style="display:none;flex-direction:column;gap:20px">
+        <h1 class="login-h1">Senha salva</h1>
+        <p style="margin:0;font:400 16px/1.6 'Chivo';color:var(--texto-corpo)">
+          Pronto. Agora é só entrar com o seu e-mail e essa senha.
+        </p>
+        <a class="botao botao--brasa" href="login.html">Entrar</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>

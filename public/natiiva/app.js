@@ -25,6 +25,9 @@
   function $$(sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); }
   function ir(destino) { location.replace(destino); }
   function texto(el, t) { if (el) el.textContent = t; }
+  // Endereco absoluto de um arquivo vizinho. O Supabase exige URL inteira no
+  // redirectTo, e ela ainda precisa estar na lista de Redirect URLs do painel.
+  function abs(destino) { return location.href.replace(/[^/]*$/, '') + destino; }
 
   /* =========================================================================
      WHATSAPP e LGPD — valem nas tres telas
@@ -116,9 +119,80 @@
         });
     });
 
+    // Esqueci a senha. Serve para dois casos que parecem um so: quem esqueceu,
+    // e quem nunca teve senha — o login criado por link magico na area do
+    // cliente da Vidalma existe, mas nao tem senha nenhuma. Nos dois, o caminho
+    // e o mesmo: o Supabase manda um link, e senha.html recebe.
     $('#esqueci').addEventListener('click', function (ev) {
       ev.preventDefault();
-      mostrarErro('Para redefinir a senha, fale com a gente pelo WhatsApp aqui embaixo.');
+      var alvo = email.value.trim();
+      if (!alvo) {
+        email.focus();
+        mostrarErro('Escreve o e-mail primeiro, que eu mando o link para ele.');
+        return;
+      }
+      erro.style.display = 'none';
+      sb.auth.resetPasswordForEmail(alvo, { redirectTo: abs('senha.html') })
+        .then(function (r) {
+          // A resposta e a mesma existindo ou nao o e-mail, de proposito: senao
+          // esta tela vira um jeito de descobrir quem e cliente.
+          mostrarErro('Se esse e-mail tiver acesso, o link chega em menos de um '
+                    + 'minuto. Olha o spam também.');
+        });
+    });
+    return;
+  }
+
+  /* =========================================================================
+     DEFINIR SENHA
+     =========================================================================
+     A pagina que o link de recuperacao abre. O supabase-js le o token do
+     endereco sozinho e cria uma sessao temporaria; e ela que autoriza a troca. */
+  if (tela === 'senha') {
+    var conferindo = $('#conferindo');
+    var pode = $('#pode');
+    var semLink = $('#sem-link');
+    var pronto = $('#pronto');
+    var erroS = $('#erro');
+    var decidido = false;
+
+    function decidir(temSessao) {
+      if (decidido) return;
+      decidido = true;
+      conferindo.style.display = 'none';
+      (temSessao ? pode : semLink).style.display = 'flex';
+    }
+
+    sb.auth.onAuthStateChange(function (evento, sessao) {
+      if (evento === 'PASSWORD_RECOVERY' || sessao) decidir(true);
+    });
+    // Rede de seguranca: se o evento nao vier (link ja usado, token vencido),
+    // ninguem fica olhando "conferindo o link" para sempre.
+    setTimeout(function () {
+      sb.auth.getSession().then(function (r) { decidir(!!(r.data && r.data.session)); });
+    }, 1500);
+
+    $('#form-senha').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var a = $('#senha').value, b = $('#senha2').value;
+      erroS.style.display = 'none';
+      if (a !== b) {
+        erroS.querySelector('p').textContent = 'As duas senhas não são iguais.';
+        erroS.style.display = 'block';
+        return;
+      }
+      var botao = ev.target.querySelector('button');
+      botao.disabled = true; botao.textContent = 'Salvando...';
+      sb.auth.updateUser({ password: a }).then(function (r) {
+        if (r.error) {
+          botao.disabled = false; botao.textContent = 'Salvar senha';
+          erroS.querySelector('p').textContent = r.error.message || 'Não consegui salvar.';
+          erroS.style.display = 'block';
+          return;
+        }
+        pode.style.display = 'none';
+        pronto.style.display = 'flex';
+      });
     });
     return;
   }
