@@ -71,10 +71,13 @@
           // schema ausente ou nao exposto na API nao e o mesmo que sem
           // permissao, e a mensagem precisa dizer isso — senao a proxima pessoa
           // perde uma tarde procurando erro de senha.
+          var det = (r.error.code ? '[' + r.error.code + '] ' : '')
+                  + (r.error.message || '')
+                  + (r.error.hint ? ' — ' + r.error.hint : '');
           if (/schema|does not exist|42P01|PGRST106|PGRST205|404/i.test(m)) {
-            return { estado: 'banco_ausente' };
+            return { estado: 'banco_ausente', detalhe: det };
           }
-          return { estado: 'erro', detalhe: r.error.message };
+          return { estado: 'erro', detalhe: det };
         }
         var linhas = r.data || [];
         if (!linhas.length || !linhas[0].ativo) return { estado: 'sem_acesso' };
@@ -421,6 +424,10 @@
       $('#carregando').style.display = 'none';
 
       if (res.estado !== 'ok') {
+        // Mostra a mensagem crua do banco. Sem ela, todo problema de
+        // configuracao vira o mesmo aviso, e o diagnostico vira chute.
+        var cru = $('#erro-cru');
+        if (cru && res.detalhe) { cru.textContent = res.detalhe; cru.style.display = 'block'; }
         $('#aviso-banco').style.display = 'block';
         return;
       }
