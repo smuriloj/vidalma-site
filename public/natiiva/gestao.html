@@ -69,8 +69,9 @@
       </div>
     </a>
     <nav style="display:flex;gap:24px;flex-wrap:wrap">
+      <a class="aba" href="inicio.html">Início</a>
       <a class="aba" href="app.html">Filtrar base</a>
-      <button class="aba" id="aba-listas">Minhas listas</button>
+      <a class="aba" href="bases.html">Minhas bases</a>
       <button class="aba" id="aba-downloads">Downloads</button>
       <button class="aba" aria-current="page">Acessos</button>
     </nav>
@@ -116,12 +117,28 @@
       <div style="background:var(--papel-elevado);box-shadow:0 0 0 1px var(--divisoria)">
         <div class="tabela-cab" style="padding:12px 20px">
           <span class="rotulo" style="flex:1 1 220px">Pessoa</span>
-          <span class="rotulo" style="width:120px;flex:none">Papel</span>
-          <span class="rotulo" style="width:150px;flex:none">Entra</span>
-          <span class="rotulo" style="width:180px;flex:none">Vê contato</span>
+          <span class="rotulo" style="width:130px;flex:none">Papel</span>
+          <span class="rotulo" style="width:170px;flex:none">Responde a</span>
+          <span class="rotulo" style="width:110px;flex:none">Entra</span>
+          <span class="rotulo" style="width:130px;flex:none">Vê contato</span>
+          <span class="rotulo" style="width:90px;flex:none">Acesso</span>
         </div>
         <div id="pessoas"></div>
       </div>
+
+      <div id="aviso-010" class="aviso" style="display:none">
+        A coluna <strong style="font-weight:600">Responde a</strong> ainda não
+        existe no banco. Rode <code>sql/010_hierarquia_e_painel.sql</code> no
+        Supabase e recarregue esta página — o resto da tela funciona normalmente
+        até lá.
+      </div>
+
+      <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0">
+        <strong style="font-weight:600;color:var(--texto-corpo)">Responde a</strong>
+        monta a equipe. O supervisor vê quantas bases cada consultor abaixo dele
+        criou e quantas empresas cada um já atendeu — e não vê a equipe de mais
+        ninguém. Dono e admin veem todos.
+      </p>
 
       <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0">
         <strong style="font-weight:600;color:var(--texto-corpo)">Entra</strong> desligado
@@ -134,36 +151,76 @@
       </p>
     </div>
 
-    <!-- liberar alguem novo ------------------------------------------- -->
+    <!-- criar usuario --------------------------------------------------- -->
     <div style="display:flex;flex-direction:column;gap:16px">
-      <span class="rotulo">Liberar acesso</span>
+      <span class="rotulo">Criar usuário</span>
       <div class="novo">
-        <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo)">
-          A pessoa precisa existir no login antes. Se ainda não existir, crie
-          em Authentication → Users no Supabase e volte aqui.
+        <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo);max-width:66ch">
+          Cria o login e libera o acesso de uma vez. A pessoa entra com o e-mail
+          e a senha que você definir aqui — e pode trocar depois, sozinha, pelo
+          "Esqueci a senha".
         </p>
+
         <div class="novo-linha">
-          <div class="campo">
-            <label class="rotulo" for="novo-email">E-mail</label>
-            <input class="campo-txt" id="novo-email" type="email" placeholder="pessoa@empresa.com.br">
-          </div>
           <div class="campo">
             <label class="rotulo" for="novo-nome">Nome</label>
             <input class="campo-txt" id="novo-nome" type="text" placeholder="Como aparece no painel">
           </div>
           <div class="campo">
+            <label class="rotulo" for="novo-email">E-mail</label>
+            <input class="campo-txt" id="novo-email" type="email" placeholder="pessoa@empresa.com.br">
+          </div>
+        </div>
+
+        <div class="novo-linha">
+          <div class="campo">
+            <label class="rotulo" for="nova-senha">Senha inicial</label>
+            <div style="display:flex;gap:8px">
+              <input class="campo-txt" id="nova-senha" type="text" placeholder="Ao menos 8 caracteres">
+              <button type="button" class="botao botao--borda-clara" id="btn-gerar"
+                      style="flex:none;padding:0 14px;min-height:0">Gerar</button>
+            </div>
+          </div>
+          <div class="campo">
             <label class="rotulo" for="novo-papel">Papel</label>
             <select class="campo-sel" id="novo-papel">
-              <option value="CLIENTE">Cliente — vê a base, contato conforme liberação</option>
-              <option value="COMERCIAL">Comercial — uso interno, vê contato</option>
+              <option value="CLIENTE">Cliente — usa a base</option>
+              <option value="CONSULTOR">Consultor — cria e atende as próprias bases</option>
+              <option value="SUPERVISOR">Supervisor — vê os números da equipe dele</option>
               <option value="ADMIN">Admin — administra acessos</option>
               <option value="DONO">Dono — tudo</option>
             </select>
           </div>
+          <div class="campo" id="campo-supervisor" style="display:none">
+            <label class="rotulo" for="novo-supervisor">Responde a</label>
+            <select class="campo-sel" id="novo-supervisor">
+              <option value="">Sem supervisor</option>
+            </select>
+          </div>
+          <div class="campo">
+            <span class="rotulo">Vê contato</span>
+            <label class="chave" style="min-height:44px">
+              <input type="checkbox" id="novo-liberado">
+              <i></i><span>Não</span>
+            </label>
+          </div>
         </div>
+
         <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-          <button class="botao botao--brasa" id="btn-liberar">Liberar acesso</button>
-          <span id="msg-novo" style="font:400 14px 'Chivo';color:var(--cimento)"></span>
+          <button class="botao botao--brasa" id="btn-liberar">Criar e liberar acesso</button>
+          <span id="msg-novo" style="font:400 14px/1.5 'Chivo';color:var(--cimento)"></span>
+        </div>
+
+        <div id="senha-pronta" style="display:none;border-left:3px solid var(--latao);padding:14px 18px;background:var(--papel-fundo);flex-direction:column;gap:8px">
+          <span style="font:600 14px 'Chivo';color:var(--ferro)">Guarde e mande para a pessoa</span>
+          <div style="font:400 14px/1.7 ui-monospace,Menlo,Consolas,monospace;color:var(--texto-corpo)">
+            <div>vidalma.com.br/natiiva/login</div>
+            <div id="pronta-email"></div>
+            <div id="pronta-senha"></div>
+          </div>
+          <span style="font:400 13px/1.5 'Chivo';color:var(--cimento)">
+            Esta senha não aparece de novo depois que você sair desta tela.
+          </span>
         </div>
       </div>
     </div>

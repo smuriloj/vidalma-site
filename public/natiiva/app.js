@@ -30,6 +30,231 @@
   function abs(destino) { return location.href.replace(/[^/]*$/, '') + destino; }
 
   /* =========================================================================
+     CAIXA DE DIALOGO
+     =========================================================================
+     O prompt(), o confirm() e o alert() do navegador funcionam, mas sao cinza
+     de sistema operacional, aparecem colados no topo da janela e nao aceitam
+     formatacao nenhuma. Numa tela que vai ser vendida, a caixa que pergunta o
+     nome da base e parte do produto tanto quanto a tabela.
+
+     Alem da aparencia, ganha-se uma coisa que o prompt() nao da: perguntar as
+     tres informacoes da base de uma vez so, em vez de tres caixas em fila em
+     que voltar atras significa cancelar tudo.
+
+     dialogo(op) devolve uma promessa: null se a pessoa desistiu, ou um objeto
+     com o valor de cada campo se ela confirmou.
+
+       op.titulo    texto da tarja
+       op.texto     paragrafo de explicacao (opcional)
+       op.tom       'cuidado' pinta a tarja de ferrugem
+       op.ok        rotulo do botao que confirma
+       op.cancelar  rotulo do botao que desiste; null esconde o botao
+       op.campos    lista de campos:
+                      {id, rotulo, tipo:'texto'|'numero'|'escolha', valor,
+                       ajuda, minimo, maximo, opcoes:[{valor,titulo,detalhe}]}
+     ========================================================================= */
+  function dialogo(op) {
+    return new Promise(function (resolve) {
+      var campos = op.campos || [];
+      var valores = {};
+      var focoAnterior = document.activeElement;
+
+      var veu = document.createElement('div');
+      veu.className = 'veu';
+
+      var caixa = document.createElement('div');
+      caixa.className = 'dialogo' + (op.tom === 'cuidado' ? ' dialogo--cuidado' : '');
+      caixa.setAttribute('role', 'dialog');
+      caixa.setAttribute('aria-modal', 'true');
+      caixa.setAttribute('aria-labelledby', 'dlg-titulo');
+
+      var topo = document.createElement('div');
+      topo.className = 'dialogo-topo';
+      var h = document.createElement('h2');
+      h.id = 'dlg-titulo';
+      h.textContent = op.titulo || '';
+      topo.appendChild(h);
+      caixa.appendChild(topo);
+
+      var corpo = document.createElement('div');
+      corpo.className = 'dialogo-corpo';
+      if (op.texto) {
+        var p = document.createElement('p');
+        p.textContent = op.texto;
+        corpo.appendChild(p);
+      }
+
+      var erro = document.createElement('div');
+      erro.className = 'dialogo-erro';
+      erro.style.display = 'none';
+      erro.setAttribute('role', 'alert');
+
+      var primeiro = null;
+
+      campos.forEach(function (c) {
+        valores[c.id] = c.valor;
+
+        var env = document.createElement('div');
+        env.className = 'dialogo-campo';
+
+        if (c.rotulo) {
+          var lab = document.createElement('label');
+          lab.className = 'rotulo';
+          lab.setAttribute('for', 'dlg-' + c.id);
+          lab.textContent = c.rotulo;
+          env.appendChild(lab);
+        }
+
+        if (c.tipo === 'escolha') {
+          // Escolha e feita de blocos, e nao de uma chavinha de sim ou nao: o
+          // que muda entre as duas opcoes precisa caber na propria etiqueta, e
+          // nao numa pergunta que a pessoa vai ter de adivinhar.
+          (c.opcoes || []).forEach(function (o) {
+            var bloco = document.createElement('div');
+            bloco.className = 'dialogo-opcao';
+            bloco.setAttribute('role', 'radio');
+            bloco.setAttribute('tabindex', '0');
+            bloco.setAttribute('aria-checked', String(o.valor === c.valor));
+            var i = document.createElement('i');
+            var txt = document.createElement('div');
+            var b = document.createElement('b'); b.textContent = o.titulo;
+            txt.appendChild(b);
+            if (o.detalhe) {
+              var s = document.createElement('span'); s.textContent = o.detalhe;
+              txt.appendChild(s);
+            }
+            bloco.appendChild(i); bloco.appendChild(txt);
+            function marcar() {
+              valores[c.id] = o.valor;
+              $$('.dialogo-opcao', env).forEach(function (x) {
+                x.setAttribute('aria-checked', String(x === bloco));
+              });
+            }
+            bloco.addEventListener('click', marcar);
+            bloco.addEventListener('keydown', function (ev) {
+              if (ev.key === ' ' || ev.key === 'Enter') { ev.preventDefault(); marcar(); }
+            });
+            env.appendChild(bloco);
+            if (!primeiro) primeiro = bloco;
+          });
+        } else {
+          var inp = document.createElement('input');
+          inp.id = 'dlg-' + c.id;
+          inp.type = c.tipo === 'numero' ? 'number' : 'text';
+          inp.value = c.valor == null ? '' : String(c.valor);
+          if (c.minimo != null) inp.min = String(c.minimo);
+          if (c.maximo != null) inp.max = String(c.maximo);
+          inp.addEventListener('input', function () { valores[c.id] = inp.value; });
+          inp.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter') { ev.preventDefault(); confirmar(); }
+          });
+          env.appendChild(inp);
+          if (!primeiro) primeiro = inp;
+        }
+
+        if (c.ajuda) {
+          var aj = document.createElement('div');
+          aj.className = 'dialogo-ajuda';
+          aj.textContent = c.ajuda;
+          env.appendChild(aj);
+        }
+        corpo.appendChild(env);
+      });
+
+      corpo.appendChild(erro);
+      caixa.appendChild(corpo);
+
+      var pe = document.createElement('div');
+      pe.className = 'dialogo-pe';
+
+      if (op.cancelar !== null) {
+        var btnNao = document.createElement('button');
+        btnNao.type = 'button';
+        btnNao.className = 'botao botao--borda-clara';
+        btnNao.textContent = op.cancelar || 'Cancelar';
+        btnNao.addEventListener('click', function () { fechar(null); });
+        pe.appendChild(btnNao);
+      }
+
+      var btnSim = document.createElement('button');
+      btnSim.type = 'button';
+      btnSim.className = 'botao botao--brasa';
+      btnSim.textContent = op.ok || 'Confirmar';
+      btnSim.addEventListener('click', function () { confirmar(); });
+      pe.appendChild(btnSim);
+
+      caixa.appendChild(pe);
+      veu.appendChild(caixa);
+
+      function confirmar() {
+        for (var i = 0; i < campos.length; i++) {
+          var c = campos[i];
+          var v = valores[c.id];
+          if (c.tipo === 'numero') {
+            var n = parseInt(v, 10);
+            if (isNaN(n) || (c.minimo != null && n < c.minimo)
+                         || (c.maximo != null && n > c.maximo)) {
+              return falhar(c, 'Escreva um número'
+                + (c.minimo != null ? ' de ' + c.minimo + ' para cima' : '') + '.');
+            }
+            valores[c.id] = n;
+          } else if (c.tipo !== 'escolha') {
+            if (!String(v == null ? '' : v).trim()) {
+              return falhar(c, 'Falta preencher: ' + (c.rotulo || 'este campo') + '.');
+            }
+            valores[c.id] = String(v).trim();
+          }
+        }
+        fechar(valores);
+      }
+
+      function falhar(c, msg) {
+        erro.textContent = msg;
+        erro.style.display = 'block';
+        var alvo = $('#dlg-' + c.id, caixa);
+        if (alvo) alvo.focus();
+      }
+
+      function aoTeclar(ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); fechar(null); return; }
+        // Prende o Tab dentro da caixa: fora dela esta a tela apagada pelo veu,
+        // e sair para la com o teclado deixa a pessoa perdida.
+        if (ev.key !== 'Tab') return;
+        var focaveis = $$('input, button, [tabindex="0"]', caixa)
+          .filter(function (e) { return !e.disabled; });
+        if (!focaveis.length) return;
+        var pri = focaveis[0], ult = focaveis[focaveis.length - 1];
+        if (ev.shiftKey && document.activeElement === pri) { ev.preventDefault(); ult.focus(); }
+        else if (!ev.shiftKey && document.activeElement === ult) { ev.preventDefault(); pri.focus(); }
+      }
+
+      var fechado = false;
+      function fechar(resultado) {
+        if (fechado) return;
+        fechado = true;
+        document.removeEventListener('keydown', aoTeclar, true);
+        veu.parentNode.removeChild(veu);
+        if (focoAnterior && focoAnterior.focus) focoAnterior.focus();
+        resolve(resultado);
+      }
+
+      document.addEventListener('keydown', aoTeclar, true);
+      document.body.appendChild(veu);
+      (primeiro || btnSim).focus();
+    });
+  }
+
+  // Um aviso, um botao so. Substitui o alert().
+  function avisar(titulo, texto) {
+    return dialogo({ titulo: titulo, texto: texto, ok: 'Entendi', cancelar: null });
+  }
+
+  // Uma pergunta de sim ou nao. Substitui o confirm().
+  function perguntar(op) {
+    return dialogo(op).then(function (r) { return r !== null; });
+  }
+
+  /* =========================================================================
      WHATSAPP e LGPD — valem nas tres telas
      ========================================================================= */
   (function contatos() {
@@ -109,7 +334,7 @@
      ========================================================================= */
   if (tela === 'login') {
     sb.auth.getSession().then(function (r) {
-      if (r.data && r.data.session) ir('app.html');
+      if (r.data && r.data.session) ir('inicio.html');
     });
 
     var form = $('#form-entrar');
@@ -136,7 +361,9 @@
             senha.value = ''; senha.focus();
             return;
           }
-          ir('app.html');
+          // Entra pelo Inicio: quem loga quer saber onde parou, e nao
+          // recomecar montando um recorte do zero.
+          ir('inicio.html');
         });
     });
 
@@ -251,6 +478,237 @@
       caixa.appendChild(d);
     });
   }
+  // "há 3 dias", e nao "07/08/2026 14:22". Quem olha o painel quer saber se a
+  // pessoa trabalhou hoje, nao a data exata.
+  function quando(iso) {
+    if (!iso) return 'nunca';
+    var dif = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (dif < 2) return 'agora';
+    if (dif < 60) return 'há ' + dif + ' min';
+    if (dif < 60 * 24) { var h = Math.floor(dif / 60); return 'há ' + h + (h === 1 ? ' hora' : ' horas'); }
+    var d = Math.floor(dif / 60 / 24);
+    if (d < 30) return 'há ' + d + (d === 1 ? ' dia' : ' dias');
+    return new Date(iso).toLocaleDateString('pt-BR');
+  }
+
+  /* =========================================================================
+     INICIO — o painel de cada um
+     =========================================================================
+     Tres blocos, e quais aparecem depende do papel:
+
+       o seu trabalho    todo mundo
+       bases             todo mundo
+       a sua equipe      supervisor, admin e dono
+       o estoque         supervisor, admin e dono
+
+     A hierarquia nao e decidida aqui. natiiva.painel_usuario e uma view com
+     security_invoker: ela devolve as linhas que a RLS deixa aquela pessoa ver,
+     e mais nenhuma. Se esta tela pedir a equipe inteira sendo consultor, o
+     banco devolve so a linha dela. Esconder o bloco e arrumacao, nao trava. */
+  if (tela === 'inicio') {
+    $('#sair').addEventListener('click', function () {
+      sb.auth.signOut().then(function () { ir('login.html'); });
+    });
+    $('#aba-downloads').addEventListener('click', function () {
+      avisar('Ainda não construído',
+             'O histórico de downloads entra depois. Por enquanto o caminho é '
+           + 'Filtrar base e criar uma base a partir do recorte.');
+    });
+
+    function pct(feito, total) {
+      return total ? Math.round(feito * 100 / total) : 0;
+    }
+
+    function pintarMeu(p) {
+      var empresas = Number(p.empresas || 0);
+      var atendidas = Number(p.atendidas || 0);
+      texto($('#m-bases'), numero(p.bases || 0));
+      texto($('#m-empresas'), numero(empresas));
+      texto($('#m-atendidas'), numero(atendidas));
+      texto($('#m-pct'), pct(atendidas, empresas) + '%');
+      texto($('#m-encerradas'), numero(p.encerradas || 0));
+      texto($('#meu-quando'), 'Último atendimento: ' + quando(p.ultimo_atendimento));
+    }
+
+    function pintarBases(bases) {
+      var caixa = $('#lista-bases');
+      caixa.innerHTML = '';
+      if (!bases.length) {
+        caixa.style.display = 'none';
+        $('#sem-bases').style.display = 'flex';
+        return;
+      }
+      // As que ainda tem trabalho primeiro. A tela de inicio responde "o que
+      // falta"; o que ja acabou tem a tela de Minhas bases.
+      bases.sort(function (a, b) {
+        var fa = Number(a.faltam || 0), fb = Number(b.faltam || 0);
+        if ((fa > 0) !== (fb > 0)) return fa > 0 ? -1 : 1;
+        return new Date(b.criada_em) - new Date(a.criada_em);
+      });
+      bases.slice(0, 6).forEach(function (b) {
+        var feito = Number(b.atendidos || 0), total = Number(b.total || 0);
+        var p = pct(feito, total);
+
+        var linha = document.createElement('div');
+        linha.className = 'b-linha';
+
+        var nome = document.createElement('div');
+        nome.className = 'b-nome';
+        var bb = document.createElement('b'); bb.textContent = b.nome;
+        var ss = document.createElement('span');
+        ss.textContent = (b.descricao || 'Recorte sem descrição')
+                       + (b.reservou ? ' · reservada' : '');
+        nome.appendChild(bb); nome.appendChild(ss);
+
+        var prog = document.createElement('div');
+        prog.className = 'b-prog';
+        var barra = document.createElement('div');
+        barra.className = 'barra';
+        var i = document.createElement('i');
+        i.style.width = p + '%';
+        if (p >= 100) i.className = 'fim';
+        barra.appendChild(i);
+        var leg = document.createElement('span');
+        leg.textContent = numero(feito) + ' de ' + numero(total) + ' · ' + p + '%';
+        prog.appendChild(barra); prog.appendChild(leg);
+
+        var acao = document.createElement('div');
+        acao.className = 'b-acao';
+        var bt = document.createElement('a');
+        bt.className = 'botao ' + (p >= 100 ? 'botao--borda-clara' : 'botao--brasa');
+        bt.style.cssText = 'min-height:38px;padding:0 16px;font-size:14px';
+        bt.href = 'atender.html?base=' + b.id;
+        bt.textContent = p >= 100 ? 'Ver resultado' : 'Atender';
+        acao.appendChild(bt);
+
+        linha.appendChild(nome); linha.appendChild(prog); linha.appendChild(acao);
+        caixa.appendChild(linha);
+      });
+    }
+
+    function pintarEquipe(equipe) {
+      var caixa = $('#equipe');
+      caixa.innerHTML = '';
+      equipe.sort(function (a, b) {
+        return Number(b.atendidas || 0) - Number(a.atendidas || 0);
+      });
+      equipe.forEach(function (p) {
+        var empresas = Number(p.empresas || 0), atendidas = Number(p.atendidas || 0);
+        var linha = document.createElement('div');
+        linha.className = 'e-linha';
+
+        var quem = document.createElement('div');
+        quem.className = 'e-nome';
+        var b = document.createElement('b'); b.textContent = p.nome || p.email;
+        var s = document.createElement('span');
+        s.textContent = (p.papel === 'SUPERVISOR' ? 'Supervisor' : 'Consultor')
+                      + (p.ativo ? '' : ' · sem entrada');
+        quem.appendChild(b); quem.appendChild(s);
+        linha.appendChild(quem);
+
+        [numero(p.bases || 0), numero(empresas), numero(atendidas),
+         pct(atendidas, empresas) + '%'].forEach(function (v) {
+          var d = document.createElement('div');
+          d.className = 'e-num';
+          d.textContent = v;
+          linha.appendChild(d);
+        });
+
+        var q = document.createElement('div');
+        q.className = 'e-quando';
+        q.textContent = quando(p.ultimo_atendimento);
+        linha.appendChild(q);
+
+        caixa.appendChild(linha);
+      });
+      texto($('#equipe-resumo'), equipe.length
+        ? equipe.length + (equipe.length === 1 ? ' pessoa' : ' pessoas') + ' respondendo a você'
+        : 'Ninguém aponta para você ainda — defina isso em Acessos.');
+    }
+
+    function pintarEstoque(e) {
+      texto($('#e-disp'),  numero(e.disponiveis || 0));
+      texto($('#e-res'),   numero(e.reservados || 0));
+      texto($('#e-ent'),   numero(e.entregues || 0));
+      texto($('#e-tot'),   numero(e.total || 0));
+      texto($('#e-score'), e.score_medio == null ? '—' : e.score_medio);
+      $('#bloco-estoque').style.display = 'flex';
+    }
+
+    sb.auth.getSession().then(function (r) {
+      if (!(r.data && r.data.session)) { ir('login.html'); return; }
+      var meuId = r.data.session.user.id;
+
+      return conferirMembro().then(function (res) {
+        if (res.estado === 'sem_acesso') {
+          return sb.auth.signOut().then(function () { ir('login.html'); });
+        }
+        $('#carregando').style.display = 'none';
+        if (res.estado !== 'ok') { ir('app.html'); return; }
+
+        var m = res.membro;
+        var manda = ['DONO', 'ADMIN', 'SUPERVISOR'].indexOf(m.papel) >= 0;
+        var primeiroNome = (m.nome || '').trim().split(/\s+/)[0];
+
+        texto($('#conta'), m.nome || '');
+        texto($('#sair'), (m.nome || '?').trim().charAt(0).toUpperCase());
+        texto($('#saudacao'), primeiroNome ? 'Olá, ' + primeiroNome : 'Olá');
+        texto($('#explica'),
+          m.papel === 'DONO' || m.papel === 'ADMIN'
+            ? 'Você vê tudo: as suas bases, as de todo mundo e o estoque inteiro da Natiiva.'
+          : m.papel === 'SUPERVISOR'
+            ? 'Aqui ficam as suas bases e os números de quem responde a você.'
+            : 'Aqui ficam as suas bases e o quanto de cada uma já foi atendido.');
+        if (['DONO', 'ADMIN'].indexOf(m.papel) >= 0) {
+          $('#aba-acessos').style.display = 'inline-flex';
+        }
+        $('#conteudo').style.display = 'flex';
+
+        // As bases vem de bases_resumo, que existe desde o 007. Este pedaco da
+        // tela funciona mesmo sem o 010 ter rodado.
+        sb.from('bases_resumo').select('*').then(function (rb) {
+          if (rb.error) {
+            $('#lista-bases').style.display = 'none';
+            $('#sem-bases').style.display = 'flex';
+            return;
+          }
+          pintarBases((rb.data || []).filter(function (b) {
+            return b.criada_por === meuId;
+          }));
+        });
+
+        return sb.from('painel_usuario').select('*').then(function (rp) {
+          if (rp.error) {
+            // A view so existe depois do 010. Dizer isso e melhor do que
+            // mostrar cinco tracos e deixar a pessoa achando que nao trabalhou.
+            $('#aviso-010').style.display = 'block';
+            $('#bloco-meu').style.display = 'none';
+            return;
+          }
+          var linhas = rp.data || [];
+          var eu = linhas.filter(function (p) { return p.usuario_id === meuId; })[0];
+          if (eu) pintarMeu(eu);
+
+          if (manda) {
+            var equipe = linhas.filter(function (p) { return p.usuario_id !== meuId; });
+            // Dono e admin enxergam todo mundo pela RLS. Mostrar a casa inteira
+            // como "a sua equipe" seria mentira de rotulo, mas esconder seria
+            // pior: e justamente o que o dono pediu para ver.
+            if (equipe.length) {
+              $('#bloco-equipe').style.display = 'flex';
+              pintarEquipe(equipe);
+            }
+            sb.rpc('painel_estoque').then(function (re) {
+              if (re.error) return;   // sem permissao ou sem o 010: bloco fica fora
+              var e = Array.isArray(re.data) ? re.data[0] : re.data;
+              if (e) pintarEstoque(e);
+            });
+          }
+        });
+      });
+    });
+    return;
+  }
 
   /* =========================================================================
      MINHAS BASES
@@ -261,7 +719,9 @@
     });
     var abaDown = $('#aba-downloads');
     if (abaDown) abaDown.addEventListener('click', function () {
-      alert('Ainda não construído.');
+      avisar('Ainda não construído',
+             'O histórico de downloads entra depois. Por enquanto o caminho é '
+           + 'Filtrar base e criar uma base a partir do recorte.');
     });
 
     function pintarBase(b, resultados) {
@@ -477,15 +937,29 @@
 
     // Pular manda para o fim da fila, nao tabula. Empresa que nao atendeu
     // agora pode atender depois, e nao vira estatistica de nada.
+    //
+    // Pergunta antes porque a tela some no clique: a empresa que estava a
+    // vista vai para o fim de uma fila de dezenas, e quem clicou sem querer
+    // nao tem como voltar nela — nao ha botao de desfazer aqui.
     $('#btn-pular').addEventListener('click', function () {
       if (!atual) return;
-      sb.from('base_leads')
-        .update({ ordem: 999999 + (atual.ordem || 0) })
-        .eq('base_id', idBase).eq('lead_cnpj', atual.cnpj)
-        .then(function (r) {
-          if (r.error) { $('#msg').textContent = 'Não consegui pular: ' + r.error.message; return; }
-          return proxima();
-        });
+      perguntar({
+        titulo: 'Pular esta empresa?',
+        texto: (atual.razao_social || 'Esta empresa')
+             + ' vai para o fim da fila e você a atende depois. '
+             + 'Nada é tabulado: ela não entra em nenhum resultado da base.',
+        ok: 'Pular e ir para a próxima',
+        cancelar: 'Continuar nesta'
+      }).then(function (sim) {
+        if (!sim) return;
+        sb.from('base_leads')
+          .update({ ordem: 999999 + (atual.ordem || 0) })
+          .eq('base_id', idBase).eq('lead_cnpj', atual.cnpj)
+          .then(function (r) {
+            if (r.error) { $('#msg').textContent = 'Não consegui pular: ' + r.error.message; return; }
+            return proxima();
+          });
+      });
     });
 
     sb.auth.getSession().then(function (r) {
@@ -517,14 +991,32 @@
      alguem abrir esta pagina sem ser admin, a lista volta com a propria linha
      e as gravacoes sao recusadas. Esconder a tela e cortesia, nao seguranca. */
   if (tela === 'gestao') {
-    var PAPEIS = ['DONO', 'ADMIN', 'COMERCIAL', 'CLIENTE'];
+    // Cinco papeis, e a ordem aqui e a da hierarquia. COMERCIAL sai da lista de
+    // escolha — o 010 renomeou os que existiam para CONSULTOR — mas continua
+    // aceito pelo banco, entao uma linha antiga que ainda esteja assim aparece
+    // com o nome dela em vez de cair para o primeiro item da lista.
+    var PAPEIS = [
+      { valor: 'DONO',       nome: 'Dono',       resumo: 'Tudo. Vê o estoque inteiro e administra acessos.' },
+      { valor: 'ADMIN',      nome: 'Admin',      resumo: 'Administra acessos e vê o estoque.' },
+      { valor: 'SUPERVISOR', nome: 'Supervisor', resumo: 'Vê os números dos consultores abaixo dele.' },
+      { valor: 'CONSULTOR',  nome: 'Consultor',  resumo: 'Cria e atende as próprias bases.' },
+      { valor: 'CLIENTE',    nome: 'Cliente',    resumo: 'Usa a base que você liberar.' }
+    ];
+    function nomeDoPapel(v) {
+      for (var i = 0; i < PAPEIS.length; i++) if (PAPEIS[i].valor === v) return PAPEIS[i].nome;
+      return v ? v.charAt(0) + v.slice(1).toLowerCase() : '';
+    }
+    // Preenchida pelo listar(): quem pode receber consultor embaixo.
+    var chefes = [];
 
     $('#sair').addEventListener('click', function () {
       sb.auth.signOut().then(function () { ir('login.html'); });
     });
     $$('#aba-listas, #aba-downloads').forEach(function (b) {
       b.addEventListener('click', function () {
-        alert('Ainda não construído. Vem depois de a base estar carregada.');
+        avisar('Ainda não construído',
+               'O histórico de downloads entra depois. Por enquanto o caminho é '
+             + 'Filtrar base e criar uma base a partir do recorte.');
       });
     });
 
@@ -539,25 +1031,95 @@
       quem.appendChild(b); quem.appendChild(s);
 
       var papel = document.createElement('div');
-      papel.style.cssText = 'width:120px;flex:none';
+      papel.style.cssText = 'width:130px;flex:none';
       var sel = document.createElement('select');
       sel.className = 'campo-sel';
       sel.style.cssText = 'padding:7px 8px;font-size:13px';
-      PAPEIS.forEach(function (x) {
+      sel.setAttribute('aria-label', 'Papel de ' + (p.nome || p.email));
+      var listaPapeis = PAPEIS.slice();
+      if (p.papel && !listaPapeis.some(function (x) { return x.valor === p.papel; })) {
+        listaPapeis.push({ valor: p.papel, nome: nomeDoPapel(p.papel) });
+      }
+      listaPapeis.forEach(function (x) {
         var o = document.createElement('option');
-        o.value = x; o.textContent = x.charAt(0) + x.slice(1).toLowerCase();
-        if (x === p.papel) o.selected = true;
+        o.value = x.valor; o.textContent = x.nome;
+        if (x.valor === p.papel) o.selected = true;
         sel.appendChild(o);
       });
       sel.addEventListener('change', function () {
-        gravar(p.usuario_id, { papel: sel.value });
+        gravar(p.usuario_id, { papel: sel.value }, function (ok) {
+          if (ok) listar();   // trocar de papel muda quem pode ser chefe de quem
+        });
       });
       papel.appendChild(sel);
 
+      // A quem esta pessoa responde. Só faz sentido para quem opera: dono,
+      // admin e cliente não entram em equipe.
+      var chefe = document.createElement('div');
+      chefe.style.cssText = 'width:170px;flex:none';
+      if (p.papel === 'CONSULTOR' || p.papel === 'COMERCIAL' || p.papel === 'SUPERVISOR') {
+        var selC = document.createElement('select');
+        selC.className = 'campo-sel';
+        selC.style.cssText = 'padding:7px 8px;font-size:13px';
+        selC.setAttribute('aria-label', 'Supervisor de ' + (p.nome || p.email));
+        var vazio = document.createElement('option');
+        vazio.value = ''; vazio.textContent = 'Sem supervisor';
+        selC.appendChild(vazio);
+        chefes.forEach(function (c) {
+          // Ninguem responde a si mesmo, e isso nao e detalhe de tela: a view
+          // do painel juntaria a pessoa com ela mesma e o numero dobraria.
+          if (c.usuario_id === p.usuario_id) return;
+          var o = document.createElement('option');
+          o.value = c.usuario_id;
+          o.textContent = c.nome || c.email;
+          if (c.usuario_id === p.supervisor_id) o.selected = true;
+          selC.appendChild(o);
+        });
+        selC.addEventListener('change', function () {
+          gravar(p.usuario_id, { supervisor_id: selC.value || null });
+        });
+        chefe.appendChild(selC);
+      } else {
+        var traco = document.createElement('span');
+        traco.style.cssText = "font:400 13px 'Chivo';color:var(--cimento)";
+        traco.textContent = '—';
+        chefe.appendChild(traco);
+      }
+
       linha.appendChild(quem);
       linha.appendChild(papel);
-      linha.appendChild(chave(p, 'ativo', 'Entra', 150));
-      linha.appendChild(chave(p, 'liberado', 'Vê contato', 180));
+      linha.appendChild(chefe);
+      linha.appendChild(chave(p, 'ativo', 'Entra', 110));
+      linha.appendChild(chave(p, 'liberado', 'Vê contato', 130));
+
+      // Remover e diferente de desligar: desligar bloqueia na hora e guarda o
+      // historico; remover apaga a linha. Na duvida, desligue.
+      var fim = document.createElement('div');
+      fim.style.cssText = 'width:90px;flex:none';
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.style.cssText = "background:none;border:0;padding:0;cursor:pointer;"
+                       + "font:400 13px 'Chivo';color:var(--brasa);text-decoration:underline";
+      rm.textContent = 'Remover';
+      rm.addEventListener('click', function () {
+        perguntar({
+          titulo: 'Remover o acesso de ' + (p.nome || p.email) + '?',
+          tom: 'cuidado',
+          texto: 'O login continua existindo — só o acesso à Natiiva sai. '
+               + 'Se for temporário, desligue "Entra" em vez de remover: '
+               + 'a chave bloqueia na hora e guarda o histórico do que a pessoa fez.',
+          ok: 'Remover mesmo assim',
+          cancelar: 'Deixar como está'
+        }).then(function (sim) {
+          if (!sim) return;
+          sb.rpc('remover_membro', { p_email: p.email }).then(function (r) {
+            if (r.error) { avisar('Não consegui remover', r.error.message); return; }
+            listar();
+          });
+        });
+      });
+      fim.appendChild(rm);
+      linha.appendChild(fim);
       return linha;
     }
 
@@ -590,7 +1152,7 @@
     function gravar(id, mudanca, depois) {
       sb.from('membros').update(mudanca).eq('usuario_id', id).then(function (r) {
         if (r.error) {
-          alert('Não consegui salvar: ' + (r.error.message || ''));
+          avisar('Não consegui salvar', r.error.message || 'O banco recusou a mudança.');
           if (depois) depois(false);
           return;
         }
@@ -599,42 +1161,173 @@
     }
 
     function listar() {
-      sb.from('membros')
-        .select('usuario_id, nome, email, papel, ativo, liberado')
+      return sb.from('membros')
+        .select('usuario_id, nome, email, papel, ativo, liberado, supervisor_id')
         .order('papel').order('nome')
         .then(function (r) {
-          if (r.error) { alert('Não consegui ler a lista: ' + r.error.message); return; }
+          // supervisor_id so existe depois do 010. Sem esta segunda tentativa,
+          // subir o site antes de rodar o SQL deixaria a tela de acessos vazia
+          // com uma mensagem que manda procurar no lugar errado.
+          var m = (r.error && ((r.error.message || '') + ' ' + (r.error.code || ''))) || '';
+          if (r.error && /supervisor_id|42703|PGRST204/i.test(m)) {
+            semHierarquia = true;
+            return sb.from('membros')
+              .select('usuario_id, nome, email, papel, ativo, liberado')
+              .order('papel').order('nome');
+          }
+          return r;
+        })
+        .then(function (r) {
+          if (r.error) { avisar('Não consegui ler a lista', r.error.message); return; }
           var pessoas = r.data || [];
+
+          // Quem pode ter gente embaixo. Consultor nao chefia consultor: dois
+          // niveis bastam, e mais niveis so aparecem quando alguem precisar.
+          chefes = pessoas.filter(function (p) {
+            return p.ativo && ['DONO', 'ADMIN', 'SUPERVISOR'].indexOf(p.papel) >= 0;
+          });
+
           var caixa = $('#pessoas');
           caixa.innerHTML = '';
           pessoas.forEach(function (p) { caixa.appendChild(pintarPessoa(p)); });
+
           var ativos = pessoas.filter(function (p) { return p.ativo; }).length;
           texto($('#resumo-acessos'),
                 pessoas.length + ' cadastrados · ' + ativos + ' com entrada liberada');
+
+          // O seletor de supervisor do formulario de criar usa a mesma lista.
+          var selNovo = $('#novo-supervisor');
+          if (selNovo) {
+            var antes = selNovo.value;
+            selNovo.innerHTML = '';
+            var vazio = document.createElement('option');
+            vazio.value = ''; vazio.textContent = 'Sem supervisor';
+            selNovo.appendChild(vazio);
+            chefes.forEach(function (c) {
+              var o = document.createElement('option');
+              o.value = c.usuario_id; o.textContent = c.nome || c.email;
+              selNovo.appendChild(o);
+            });
+            selNovo.value = antes;
+          }
+          if (semHierarquia) $('#aviso-010').style.display = 'block';
+          ajustarSupervisor();
         });
     }
+    var semHierarquia = false;
+
+    // Supervisor so entra na conversa para quem opera. Perguntar a quem um
+    // cliente responde nao significa nada.
+    function ajustarSupervisor() {
+      var papel = $('#novo-papel').value;
+      var mostra = !semHierarquia && (papel === 'CONSULTOR' || papel === 'SUPERVISOR');
+      $('#campo-supervisor').style.display = mostra ? 'flex' : 'none';
+    }
+    $('#novo-papel').addEventListener('change', ajustarSupervisor);
+
+    // A chavinha do formulario de criar
+    (function () {
+      var c = $('#novo-liberado');
+      c.addEventListener('change', function () {
+        c.parentNode.querySelector('span').textContent = c.checked ? 'Sim' : 'Não';
+      });
+    })();
+
+    function senhaSorteada() {
+      // Sem 0/O/1/l/I: senha e ditada por telefone e lida em papel.
+      var alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+      var n = new Uint32Array(12);
+      (window.crypto || window.msCrypto).getRandomValues(n);
+      return Array.prototype.map.call(n, function (x) {
+        return alfabeto[x % alfabeto.length];
+      }).join('');
+    }
+
+    $('#btn-gerar').addEventListener('click', function () {
+      $('#nova-senha').value = senhaSorteada();
+    });
+
+    // Criar o login e liberar o acesso, numa acao so.
+    //
+    // O login e criado pelo cadastro publico do Supabase, e nao pela API de
+    // administracao: esta ultima exige a chave service_role, que abre o banco
+    // inteiro e nunca pode chegar ao navegador.
+    //
+    // O cadastro usa uma segunda conexao, com guarda propria e sem gravar
+    // sessao. Sem isso, criar um usuario derrubaria a sua sessao e voce sairia
+    // do sistema a cada cadastro — o Supabase entra automaticamente com quem
+    // acabou de se cadastrar.
+    var sbCadastro = window.supabase.createClient(cfg.url, cfg.chave, {
+      auth: { storageKey: 'natiiva-cadastro', persistSession: false,
+              autoRefreshToken: false, detectSessionInUrl: false }
+    });
 
     $('#btn-liberar').addEventListener('click', function () {
       var email = $('#novo-email').value.trim();
       var nome = $('#novo-nome').value.trim();
+      var senha = $('#nova-senha').value;
       var papel = $('#novo-papel').value;
+      var liberado = $('#novo-liberado').checked;
+      var chefe = (!semHierarquia && $('#campo-supervisor').style.display !== 'none')
+                ? ($('#novo-supervisor').value || null) : null;
       var msg = $('#msg-novo');
+      var botao = $('#btn-liberar');
+
       if (!email) { msg.textContent = 'Falta o e-mail.'; return; }
-      msg.textContent = 'Procurando o login...';
-      // A funcao no banco resolve o e-mail para o usuario do auth e cadastra.
-      // Feita assim porque auth.users nao e legivel pelo navegador — e nem
-      // deveria ser.
-      sb.rpc('liberar_membro', { p_email: email, p_nome: nome, p_papel: papel })
+      if (!senha || senha.length < 8) {
+        msg.textContent = 'A senha precisa de ao menos 8 caracteres. Use o Gerar.';
+        return;
+      }
+
+      botao.disabled = true; botao.textContent = 'Criando...';
+      msg.textContent = 'Criando o login...';
+      $('#senha-pronta').style.display = 'none';
+
+      sbCadastro.auth.signUp({ email: email, password: senha })
         .then(function (r) {
+          // "ja cadastrado" nao e erro aqui: e o caso de quem ja tem login da
+          // area do cliente da Vidalma e so precisa do acesso a Natiiva.
+          var m = (r.error && r.error.message || '').toLowerCase();
+          if (r.error && !/already|registered|exists/.test(m)) {
+            throw new Error(r.error.message);
+          }
+          msg.textContent = 'Liberando o acesso...';
+          var arg = { p_email: email, p_nome: nome, p_papel: papel, p_liberado: liberado };
+          if (chefe) arg.p_supervisor = chefe;
+          return sb.rpc('liberar_membro', arg).then(function (rr) {
+            // Antes do 010 a funcao no banco nao tem o parametro do supervisor,
+            // e o PostgREST responde "funcao nao encontrada" em vez de ignorar
+            // o argumento a mais. Tenta de novo sem ele: o acesso e criado
+            // igual, so a equipe fica para depois de rodar o SQL.
+            var m2 = (rr.error && ((rr.error.message || '') + ' ' + (rr.error.code || ''))) || '';
+            if (rr.error && chefe && /PGRST202|does not exist|not find/i.test(m2)) {
+              semHierarquia = true;
+              return sb.rpc('liberar_membro', {
+                p_email: email, p_nome: nome, p_papel: papel, p_liberado: liberado
+              });
+            }
+            return rr;
+          });
+        })
+        .then(function (r) {
+          botao.disabled = false; botao.textContent = 'Criar e liberar acesso';
           if (r.error) { msg.textContent = 'Não consegui: ' + r.error.message; return; }
           if (r.data === false) {
-            msg.textContent = 'Esse e-mail ainda não existe no login. '
-                            + 'Crie em Authentication → Users e volte aqui.';
+            msg.textContent = 'O login foi criado, mas o Supabase ainda não o '
+                            + 'confirmou. Espere alguns segundos e clique de novo.';
             return;
           }
-          msg.textContent = 'Liberado.';
+          msg.textContent = '';
+          texto($('#pronta-email'), email);
+          texto($('#pronta-senha'), senha);
+          $('#senha-pronta').style.display = 'flex';
           $('#novo-email').value = ''; $('#novo-nome').value = '';
+          $('#nova-senha').value = '';
           listar();
+        })
+        .catch(function (e) {
+          botao.disabled = false; botao.textContent = 'Criar e liberar acesso';
+          msg.textContent = 'Não consegui: ' + (e && e.message || e);
         });
     });
 
@@ -947,7 +1640,9 @@
   });
   $$('#aba-listas, #aba-downloads').forEach(function (b) {
     b.addEventListener('click', function () {
-      alert('Ainda não construído. Vem depois de a base estar carregada.');
+      avisar('Ainda não construído',
+             'O histórico de downloads entra depois. Por enquanto o caminho é '
+           + 'montar o recorte aqui e clicar em Salvar recorte.');
     });
   });
 
@@ -1037,39 +1732,58 @@
         buscarLogo();
       });
 
-    // Salvar recorte = criar uma base. O filtro vai junto, mas o que manda e a
-      // lista congelada: quem esta atendendo nao pode ver o chao se mexer.
+      // Salvar recorte = criar uma base. O filtro vai junto, mas o que manda e
+      // a lista congelada: quem esta atendendo nao pode ver o chao se mexer.
+      //
+      // As tres perguntas numa caixa so. Em tres prompts seguidos, quem se
+      // arrepende do nome na segunda pergunta so tem o botao de cancelar, e
+      // perde as outras duas respostas junto.
       $('#btn-criar-base').addEventListener('click', function () {
-        var nome = prompt('Nome desta base\n\nExemplo: "Metalurgia SP - semana 1"',
-                          descreverRecorte());
-        if (!nome) return;
-        var quantos = parseInt(prompt('Quantas empresas entram nesta base?\n\n'
-                      + 'As de maior score entram primeiro. Uma base e uma lista de '
-                      + 'trabalho — 60 por vendedor por semana e o tamanho sugerido.',
-                      '60') || '0', 10);
-        if (!quantos || quantos < 1) return;
-        var reservar = confirm('Reservar estas empresas?\n\nOK = elas somem da vitrine '
-                      + 'e das bases dos outros clientes.\nCancelar = ficam disponiveis '
-                      + 'para todo mundo.');
-
-        var b = $('#btn-criar-base');
-        b.disabled = true; b.textContent = 'Criando...';
-        sb.rpc('criar_base', {
-          p_nome: nome,
-          p_filtro: {
-            prefixos: prefixosAtuais(), uf: estado.uf === 'Todos' ? null : estado.uf,
-            cidade: estado.cidade || null, porte: porteAtual(),
-            unidade: valorDe(UNIDADES, estado.unidade), faixa: valorDe(FAIXAS, estado.faixa),
-            score: estado.minScore, capital: CAPITAIS[estado.capitalIdx],
-            idade: estado.idadeMin, contato: valorDe(CONTATOS, estado.contato),
-            descricao: descreverRecorte()
-          },
-          p_limite: quantos,
-          p_reservar: !!reservar
-        }).then(function (r) {
-          b.disabled = false; b.textContent = 'Salvar recorte';
-          if (r.error) { alert('Nao consegui criar: ' + r.error.message); return; }
-          location.href = 'atender.html?base=' + r.data;
+        dialogo({
+          titulo: 'Criar base a partir deste recorte',
+          texto: 'A lista congela agora. Quem estiver atendendo não vai ver a '
+               + 'base mudar embaixo dele — e é por isso que o progresso e o '
+               + 'resultado dela significam alguma coisa.',
+          ok: 'Criar base',
+          cancelar: 'Voltar ao filtro',
+          campos: [
+            { id: 'nome', tipo: 'texto', rotulo: 'Nome desta base',
+              valor: descreverRecorte(),
+              ajuda: 'É o nome que a equipe vai ver na lista de bases.' },
+            { id: 'quantos', tipo: 'numero', rotulo: 'Quantas empresas entram',
+              valor: 60, minimo: 1, maximo: 5000,
+              ajuda: 'As de maior score entram primeiro. 60 por vendedor por '
+                   + 'semana é o tamanho sugerido.' },
+            { id: 'reservar', tipo: 'escolha', rotulo: 'Reservar estas empresas',
+              valor: false,
+              opcoes: [
+                { valor: false, titulo: 'Deixar disponíveis',
+                  detalhe: 'Continuam na vitrine e podem entrar na base de outro cliente.' },
+                { valor: true, titulo: 'Reservar para esta base',
+                  detalhe: 'Somem da vitrine e das bases dos outros. É a opção de quem vendeu exclusividade.' }
+              ] }
+          ]
+        }).then(function (resp) {
+          if (!resp) return;
+          var b = $('#btn-criar-base');
+          b.disabled = true; b.textContent = 'Criando...';
+          sb.rpc('criar_base', {
+            p_nome: resp.nome,
+            p_filtro: {
+              prefixos: prefixosAtuais(), uf: estado.uf === 'Todos' ? null : estado.uf,
+              cidade: estado.cidade || null, porte: porteAtual(),
+              unidade: valorDe(UNIDADES, estado.unidade), faixa: valorDe(FAIXAS, estado.faixa),
+              score: estado.minScore, capital: CAPITAIS[estado.capitalIdx],
+              idade: estado.idadeMin, contato: valorDe(CONTATOS, estado.contato),
+              descricao: descreverRecorte()
+            },
+            p_limite: resp.quantos,
+            p_reservar: !!resp.reservar
+          }).then(function (r) {
+            b.disabled = false; b.textContent = 'Salvar recorte';
+            if (r.error) { avisar('Não consegui criar a base', r.error.message); return; }
+            location.href = 'atender.html?base=' + r.data;
+          });
         });
       });
 
