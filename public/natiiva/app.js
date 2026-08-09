@@ -63,8 +63,26 @@
      ========================================================================= */
   var sb = window.supabase.createClient(cfg.url, cfg.chave, { db: { schema: cfg.schema } });
 
+  function lerMembro(colunas) {
+    return sb.from('membros').select(colunas).limit(1)
+      .then(function (r) { return r; })
+      .catch(function (e) { return { error: { message: String(e && e.message || e) } }; });
+  }
+
   function conferirMembro() {
-    return sb.from('membros').select('nome, papel, ativo, liberado').limit(1)
+    return lerMembro('nome, papel, ativo, liberado')
+      .then(function (r) {
+        // A coluna "liberado" so existe depois do 005. Se o site subir antes do
+        // SQL, a consulta falha por coluna inexistente — e o aviso na tela diria
+        // "o banco nao esta de pe", que e mentira e manda procurar no lugar
+        // errado. Aqui ele tenta de novo sem a coluna, e o site funciona igual
+        // ate o 005 rodar.
+        var m = (r.error && ((r.error.message || '') + ' ' + (r.error.code || ''))) || '';
+        if (r.error && /liberado|42703|PGRST204/i.test(m)) {
+          return lerMembro('nome, papel, ativo');
+        }
+        return r;
+      })
       .then(function (r) {
         if (r.error) {
           var m = (r.error.message || '') + ' ' + (r.error.code || '');
