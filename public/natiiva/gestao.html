@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acessos · Natiiva Leads</title>
+<meta name="theme-color" content="#17120F">
+<meta name="robots" content="noindex">
+<link rel="icon" href="marca/natiiva-favicon-16.svg" type="image/svg+xml">
+<link rel="stylesheet" href="natiiva.css">
+<style>
+.app-topo { position: sticky; top: 0; z-index: 20; background: var(--ferro); }
+.app-topo-env { min-height: 64px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; row-gap: 8px; }
+.aba {
+  font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--nav-inativo);
+  text-decoration: none; min-height: 44px; display: inline-flex; align-items: center;
+  border-bottom: 2px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer;
+}
+.aba[aria-current="page"] { color: var(--papel); border-bottom-color: var(--brasa); }
+.avatar { width: 34px; height: 34px; background: var(--brasa); color: var(--papel); display: flex; align-items: center; justify-content: center; font: 600 14px 'Chivo'; flex: none; }
+
+.pessoa { border-bottom: 1px solid var(--divisoria-fraca); padding: 18px 20px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+.pessoa-nome { flex: 1 1 220px; min-width: 0; }
+.pessoa-nome b { display: block; font: 600 15px/1.35 'Chivo'; color: var(--ferro); }
+.pessoa-nome span { display: block; font: 400 13px/1.4 'Chivo'; color: var(--cimento); }
+.etiqueta { font: 600 11px/1 'Chivo'; letter-spacing: .1em; text-transform: uppercase; padding: 6px 10px; }
+.et-dono { background: var(--ferro); color: var(--papel); }
+.et-admin { background: var(--ferro); color: var(--latao); }
+.et-comercial { background: var(--papel-fundo); color: var(--texto-corpo); box-shadow: inset 0 0 0 1px var(--borda-campo); }
+.et-cliente { background: var(--papel-fundo); color: var(--texto-corpo); box-shadow: inset 0 0 0 1px var(--borda-campo); }
+
+/* Interruptor. Sem sombra e sem canto redondo — a marca e chapa cortada. */
+.chave { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+.chave input { position: absolute; opacity: 0; width: 0; height: 0; }
+.chave i { width: 40px; height: 22px; background: var(--borda-campo); position: relative; flex: none; transition: background-color 140ms; }
+.chave i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: var(--papel-elevado); transition: left 140ms; }
+.chave input:checked + i { background: var(--brasa); }
+.chave input:checked + i::after { left: 21px; }
+.chave input:focus-visible + i { outline: 2px solid var(--brasa); outline-offset: 2px; }
+.chave span { font: 400 13px/1 'Chivo'; color: var(--texto-corpo); min-width: 76px; }
+
+.novo { background: var(--papel-elevado); box-shadow: 0 0 0 1px var(--divisoria); padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.novo-linha { display: flex; gap: 16px; flex-wrap: wrap; }
+.novo-linha > * { flex: 1 1 200px; }
+.campo-txt, .campo-sel {
+  width: 100%; padding: 11px 12px; border: 1px solid var(--borda-campo);
+  background: var(--papel-elevado); font: 400 14px/1.3 'Chivo', system-ui, sans-serif;
+  color: var(--ferro); outline: none;
+}
+.campo-txt:focus, .campo-sel:focus { border-color: var(--brasa); }
+</style>
+</head>
+<body data-tela="gestao">
+
+<div class="app-topo">
+  <div class="env-app app-topo-env">
+    <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads">
+      <div class="marca marca--negativo marca--curta" style="--corpo:24px" role="img" aria-label="Natiiva Leads">
+        <div class="marca-nome" aria-hidden="true">
+          <span>NAT</span>
+          <svg class="marca-simbolo" viewBox="0 0 46 64" aria-hidden="true" focusable="false">
+            <path d="M20 15.36 V3 A3 3 0 0 1 17 0 H7 L0 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M0 15.36 H20 V61 A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z" fill="#C2410C"/>
+            <path d="M26 15.36 V3 A3 3 0 0 1 29 0 H39 L46 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M26 15.36 H46 V61 A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z" fill="#C2410C"/>
+          </svg>
+          <span>VA</span>
+        </div>
+      </div>
+    </a>
+    <nav style="display:flex;gap:24px;flex-wrap:wrap">
+      <a class="aba" href="app.html">Filtrar base</a>
+      <button class="aba" id="aba-listas">Minhas listas</button>
+      <button class="aba" id="aba-downloads">Downloads</button>
+      <button class="aba" aria-current="page">Acessos</button>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+      <span id="conta" style="font:400 14px 'Chivo';color:var(--nav-inativo)"></span>
+      <button id="sair" class="avatar" title="Sair" aria-label="Sair"></button>
+    </div>
+  </div>
+</div>
+
+<div class="env-app" style="padding-top:32px;padding-bottom:64px;display:flex;flex-direction:column;gap:32px">
+
+  <div id="carregando">
+    <p class="rotulo">Um instante</p>
+    <p style="font:400 16px 'Chivo';color:var(--cimento);margin:8px 0 0">Conferindo seu acesso.</p>
+  </div>
+
+  <div id="sem-permissao" style="display:none">
+    <div class="aviso leitura">
+      Esta tela é de quem administra. Seu acesso é de uso, não de administração.
+    </div>
+  </div>
+
+  <div id="conteudo" style="display:none;flex-direction:column;gap:32px">
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="rotulo">Acessos</span>
+      <h1 class="titulo-pagina" style="font-size:38px">Quem entra, e o que cada um vê</h1>
+      <p class="leitura" style="font:400 16px/1.6 'Chivo';color:var(--texto-corpo);margin:0">
+        Estar cadastrado no login da Vidalma não dá acesso à Natiiva. Quem aparece
+        aqui, e só quem aparece aqui, enxerga a base — e o quanto enxerga depende
+        da liberação.
+      </p>
+    </div>
+
+    <!-- quem ja tem acesso -------------------------------------------- -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap">
+        <span class="rotulo">Com acesso</span>
+        <span id="resumo-acessos" style="font:400 13px 'Chivo';color:var(--cimento)"></span>
+      </div>
+
+      <div style="background:var(--papel-elevado);box-shadow:0 0 0 1px var(--divisoria)">
+        <div class="tabela-cab" style="padding:12px 20px">
+          <span class="rotulo" style="flex:1 1 220px">Pessoa</span>
+          <span class="rotulo" style="width:120px;flex:none">Papel</span>
+          <span class="rotulo" style="width:150px;flex:none">Entra</span>
+          <span class="rotulo" style="width:180px;flex:none">Vê contato</span>
+        </div>
+        <div id="pessoas"></div>
+      </div>
+
+      <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0">
+        <strong style="font-weight:600;color:var(--texto-corpo)">Entra</strong> desligado
+        bloqueia tudo, na hora — a pessoa continua com login válido e para de
+        enxergar lead.
+        <strong style="font-weight:600;color:var(--texto-corpo)">Vê contato</strong>
+        desligado deixa a pessoa filtrar a base inteira e ver score, cargo e dor
+        provável, mas telefone, e-mail e razão social chegam parciais. É a
+        amostra: prova a qualidade sem entregar a lista.
+      </p>
+    </div>
+
+    <!-- liberar alguem novo ------------------------------------------- -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span class="rotulo">Liberar acesso</span>
+      <div class="novo">
+        <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo)">
+          A pessoa precisa existir no login antes. Se ainda não existir, crie
+          em Authentication → Users no Supabase e volte aqui.
+        </p>
+        <div class="novo-linha">
+          <div class="campo">
+            <label class="rotulo" for="novo-email">E-mail</label>
+            <input class="campo-txt" id="novo-email" type="email" placeholder="pessoa@empresa.com.br">
+          </div>
+          <div class="campo">
+            <label class="rotulo" for="novo-nome">Nome</label>
+            <input class="campo-txt" id="novo-nome" type="text" placeholder="Como aparece no painel">
+          </div>
+          <div class="campo">
+            <label class="rotulo" for="novo-papel">Papel</label>
+            <select class="campo-sel" id="novo-papel">
+              <option value="CLIENTE">Cliente — vê a base, contato conforme liberação</option>
+              <option value="COMERCIAL">Comercial — uso interno, vê contato</option>
+              <option value="ADMIN">Admin — administra acessos</option>
+              <option value="DONO">Dono — tudo</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+          <button class="botao botao--brasa" id="btn-liberar">Liberar acesso</button>
+          <span id="msg-novo" style="font:400 14px 'Chivo';color:var(--cimento)"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>

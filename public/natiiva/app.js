@@ -64,7 +64,7 @@
   var sb = window.supabase.createClient(cfg.url, cfg.chave, { db: { schema: cfg.schema } });
 
   function conferirMembro() {
-    return sb.from('membros').select('nome, papel, ativo').limit(1)
+    return sb.from('membros').select('nome, papel, ativo, liberado').limit(1)
       .then(function (r) {
         if (r.error) {
           var m = (r.error.message || '') + ' ' + (r.error.code || '');
@@ -201,6 +201,153 @@
   }
 
   /* =========================================================================
+     GESTAO DE ACESSOS
+     =========================================================================
+     Tudo aqui e protegido no banco antes de ser protegido na tela: a RLS de
+     natiiva.membros so deixa admin ler e escrever as linhas dos outros. Se
+     alguem abrir esta pagina sem ser admin, a lista volta com a propria linha
+     e as gravacoes sao recusadas. Esconder a tela e cortesia, nao seguranca. */
+  if (tela === 'gestao') {
+    var PAPEIS = ['DONO', 'ADMIN', 'COMERCIAL', 'CLIENTE'];
+
+    $('#sair').addEventListener('click', function () {
+      sb.auth.signOut().then(function () { ir('login.html'); });
+    });
+    $$('#aba-listas, #aba-downloads').forEach(function (b) {
+      b.addEventListener('click', function () {
+        alert('Ainda não construído. Vem depois de a base estar carregada.');
+      });
+    });
+
+    function pintarPessoa(p) {
+      var linha = document.createElement('div');
+      linha.className = 'pessoa';
+
+      var quem = document.createElement('div');
+      quem.className = 'pessoa-nome';
+      var b = document.createElement('b'); b.textContent = p.nome || '(sem nome)';
+      var s = document.createElement('span'); s.textContent = p.email || '';
+      quem.appendChild(b); quem.appendChild(s);
+
+      var papel = document.createElement('div');
+      papel.style.cssText = 'width:120px;flex:none';
+      var sel = document.createElement('select');
+      sel.className = 'campo-sel';
+      sel.style.cssText = 'padding:7px 8px;font-size:13px';
+      PAPEIS.forEach(function (x) {
+        var o = document.createElement('option');
+        o.value = x; o.textContent = x.charAt(0) + x.slice(1).toLowerCase();
+        if (x === p.papel) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', function () {
+        gravar(p.usuario_id, { papel: sel.value });
+      });
+      papel.appendChild(sel);
+
+      linha.appendChild(quem);
+      linha.appendChild(papel);
+      linha.appendChild(chave(p, 'ativo', 'Entra', 150));
+      linha.appendChild(chave(p, 'liberado', 'Vê contato', 180));
+      return linha;
+    }
+
+    function chave(p, campo, rotulo, largura) {
+      var env = document.createElement('div');
+      env.style.cssText = 'width:' + largura + 'px;flex:none';
+      var lab = document.createElement('label');
+      lab.className = 'chave';
+      var inp = document.createElement('input');
+      inp.type = 'checkbox';
+      inp.checked = !!p[campo];
+      inp.setAttribute('aria-label', rotulo + ' — ' + (p.nome || p.email));
+      var i = document.createElement('i');
+      var txt = document.createElement('span');
+      function rotular() { txt.textContent = inp.checked ? 'Sim' : 'Não'; }
+      rotular();
+      inp.addEventListener('change', function () {
+        rotular();
+        var mudanca = {};
+        mudanca[campo] = inp.checked;
+        gravar(p.usuario_id, mudanca, function (ok) {
+          if (!ok) { inp.checked = !inp.checked; rotular(); }
+        });
+      });
+      lab.appendChild(inp); lab.appendChild(i); lab.appendChild(txt);
+      env.appendChild(lab);
+      return env;
+    }
+
+    function gravar(id, mudanca, depois) {
+      sb.from('membros').update(mudanca).eq('usuario_id', id).then(function (r) {
+        if (r.error) {
+          alert('Não consegui salvar: ' + (r.error.message || ''));
+          if (depois) depois(false);
+          return;
+        }
+        if (depois) depois(true);
+      });
+    }
+
+    function listar() {
+      sb.from('membros')
+        .select('usuario_id, nome, email, papel, ativo, liberado')
+        .order('papel').order('nome')
+        .then(function (r) {
+          if (r.error) { alert('Não consegui ler a lista: ' + r.error.message); return; }
+          var pessoas = r.data || [];
+          var caixa = $('#pessoas');
+          caixa.innerHTML = '';
+          pessoas.forEach(function (p) { caixa.appendChild(pintarPessoa(p)); });
+          var ativos = pessoas.filter(function (p) { return p.ativo; }).length;
+          texto($('#resumo-acessos'),
+                pessoas.length + ' cadastrados · ' + ativos + ' com entrada liberada');
+        });
+    }
+
+    $('#btn-liberar').addEventListener('click', function () {
+      var email = $('#novo-email').value.trim();
+      var nome = $('#novo-nome').value.trim();
+      var papel = $('#novo-papel').value;
+      var msg = $('#msg-novo');
+      if (!email) { msg.textContent = 'Falta o e-mail.'; return; }
+      msg.textContent = 'Procurando o login...';
+      // A funcao no banco resolve o e-mail para o usuario do auth e cadastra.
+      // Feita assim porque auth.users nao e legivel pelo navegador — e nem
+      // deveria ser.
+      sb.rpc('liberar_membro', { p_email: email, p_nome: nome, p_papel: papel })
+        .then(function (r) {
+          if (r.error) { msg.textContent = 'Não consegui: ' + r.error.message; return; }
+          if (r.data === false) {
+            msg.textContent = 'Esse e-mail ainda não existe no login. '
+                            + 'Crie em Authentication → Users e volte aqui.';
+            return;
+          }
+          msg.textContent = 'Liberado.';
+          $('#novo-email').value = ''; $('#novo-nome').value = '';
+          listar();
+        });
+    });
+
+    sb.auth.getSession().then(function (r) {
+      if (!(r.data && r.data.session)) { ir('login.html'); return; }
+      return conferirMembro().then(function (res) {
+        $('#carregando').style.display = 'none';
+        if (res.estado !== 'ok') { ir('app.html'); return; }
+        if (['DONO', 'ADMIN'].indexOf(res.membro.papel) < 0) {
+          $('#sem-permissao').style.display = 'block';
+          return;
+        }
+        texto($('#conta'), res.membro.nome || '');
+        texto($('#sair'), (res.membro.nome || '?').trim().charAt(0).toUpperCase());
+        $('#conteudo').style.display = 'flex';
+        listar();
+      });
+    });
+    return;
+  }
+
+  /* =========================================================================
      APLICACAO
      ========================================================================= */
   if (tela !== 'app') return;
@@ -220,7 +367,38 @@
     { nome: 'Reciclagem',         prefixos: ['38'] },
     { nome: 'Transporte',         prefixos: ['49', '52'] }
   ];
-  var UFS = ['Todos', 'SP', 'MG', 'SC', 'PR', 'RS'];
+  // As 27 unidades da federacao mais "EX", que a Receita usa para
+  // estabelecimento no exterior e que existe na base.
+  var UFS = ['AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'EX', 'GO', 'MA',
+             'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO',
+             'RR', 'RS', 'SC', 'SE', 'SP', 'TO'];
+
+  var UNIDADES = [{ nome: 'Todos', valor: null },
+                  { nome: 'Matriz', valor: 'Matriz' },
+                  { nome: 'Filial', valor: 'Filial' }];
+
+  var FAIXAS = [
+    { nome: 'Todas',        valor: null },
+    { nome: 'A · frota',    valor: 'A - Frota propria (entrega rapida)' },
+    { nome: 'B · interior', valor: 'B - Interior SP (rota semanal)' },
+    { nome: 'C · Sul/SE',   valor: 'C - Sudeste/Sul (transportadora)' },
+    { nome: 'D · demais',   valor: 'D - Demais estados (transportadora)' }
+  ];
+
+  var CONTATOS = [{ nome: 'Todos', valor: null },
+                  { nome: 'Com telefone', valor: 'tel' },
+                  { nome: 'Com e-mail', valor: 'mail' },
+                  { nome: 'Com os dois', valor: 'ambos' }];
+
+  var SITUACOES = [{ nome: 'Todas', valor: null },
+                   { nome: 'Disponível', valor: 'DISPONIVEL' },
+                   { nome: 'Reservado', valor: 'RESERVADO' },
+                   { nome: 'Entregue', valor: 'ENTREGUE' }];
+
+  // Escala de capital social. Nao e linear de proposito: o intervalo que
+  // separa uma oficina de uma fabrica esta embaixo, nao em cima.
+  var CAPITAIS = [0, 10000, 50000, 100000, 250000, 500000,
+                  1000000, 5000000, 10000000, 50000000, 100000000];
   // Os codigos de porte da Receita: 01 microempresa, 03 EPP, 05 demais.
   // O LEADS.py ja converte para texto; aqui so traduzimos o rotulo da tela.
   var PORTES = [
@@ -231,8 +409,20 @@
   ];
   var TETO = 50;   // linhas por consulta
 
-  var estado = { setor: 'Todos', uf: 'Todos', porte: 'Todos', minScore: 70,
-                 aberto: null, liberado: false };
+  // O score deixa de ser porta de entrada e vira mais um filtro: comeca em 0,
+  // com a base inteira a vista. Quem quiser o corte premium sobe o controle.
+  var estado = {
+    setor: 'Todos', uf: 'Todos', cidade: '', porte: 'Todos',
+    unidade: 'Todos', faixa: 'Todas', contato: 'Todos', situacao: 'Todas',
+    minScore: 0, capitalIdx: 0, idadeMin: 0,
+    aberto: null, liberado: false, admin: false
+  };
+
+  function dinheiro(v) {
+    if (v >= 1000000) return 'R$ ' + (v / 1000000) + ' mi';
+    if (v >= 1000) return 'R$ ' + (v / 1000) + ' mil';
+    return 'R$ ' + v;
+  }
 
   function chips(caixa, itens, campo) {
     caixa.innerHTML = '';
@@ -265,12 +455,55 @@
   }
 
   function descreverRecorte() {
-    var partes = [];
-    partes.push(estado.setor === 'Todos' ? 'Toda a indústria' : estado.setor);
-    if (estado.uf !== 'Todos') partes.push('em ' + estado.uf);
-    if (estado.porte !== 'Todos') partes.push('· porte ' + estado.porte.toLowerCase());
-    if (estado.minScore > 0) partes.push('· score ' + estado.minScore + '+');
-    return partes.join(' ');
+    var p = [];
+    p.push(estado.setor === 'Todos' ? 'Toda a indústria' : estado.setor);
+    if (estado.cidade) p.push('em ' + estado.cidade);
+    else if (estado.uf !== 'Todos') p.push('em ' + estado.uf);
+    if (estado.porte !== 'Todos') p.push('· porte ' + estado.porte.toLowerCase());
+    if (estado.unidade !== 'Todos') p.push('· ' + estado.unidade.toLowerCase());
+    if (estado.minScore > 0) p.push('· score ' + estado.minScore + '+');
+    if (estado.capitalIdx > 0) p.push('· capital ' + dinheiro(CAPITAIS[estado.capitalIdx]) + '+');
+    if (estado.idadeMin > 0) p.push('· ' + estado.idadeMin + '+ anos');
+    if (estado.contato !== 'Todos') p.push('· ' + estado.contato.toLowerCase());
+    if (estado.situacao !== 'Todas') p.push('· ' + estado.situacao.toLowerCase());
+    return p.join(' ');
+  }
+
+  function valorDe(lista, nome) {
+    var achado = lista.filter(function (x) { return x.nome === nome; })[0];
+    return achado ? achado.valor : null;
+  }
+
+  // Data limite para "aberta ha mais de N anos". Calculada no navegador para
+  // nao precisar de funcao no banco.
+  function dataCorte(anos) {
+    var d = new Date();
+    d.setFullYear(d.getFullYear() - anos);
+    return d.toISOString().slice(0, 10);
+  }
+
+  // Monta os filtros em cima de uma consulta. Usada nas duas: a das linhas e
+  // a do resumo, para os dois nunca discordarem.
+  function aplicarFiltros(q) {
+    var pref = prefixosAtuais();
+    if (pref) q = q.in('cnae_prefixo', pref);
+    if (estado.uf !== 'Todos') q = q.eq('uf', estado.uf);
+    if (estado.cidade) q = q.ilike('cidade', '%' + estado.cidade + '%');
+    var porte = porteAtual();
+    if (porte) q = q.eq('porte', porte);
+    var unid = valorDe(UNIDADES, estado.unidade);
+    if (unid) q = q.eq('tipo_unid', unid);
+    var faixa = valorDe(FAIXAS, estado.faixa);
+    if (faixa) q = q.eq('faixa_logistica', faixa);
+    if (estado.minScore > 0) q = q.gte('score', estado.minScore);
+    if (estado.capitalIdx > 0) q = q.gte('capital_social', CAPITAIS[estado.capitalIdx]);
+    if (estado.idadeMin > 0) q = q.lte('abertura', dataCorte(estado.idadeMin));
+    var ct = valorDe(CONTATOS, estado.contato);
+    if (ct === 'tel' || ct === 'ambos') q = q.not('telefone_1', 'is', null);
+    if (ct === 'mail' || ct === 'ambos') q = q.not('email', 'is', null);
+    var sit = valorDe(SITUACOES, estado.situacao);
+    if (sit) q = q.eq('status_base', sit);
+    return q;
   }
 
   function numero(n) {
@@ -360,45 +593,53 @@
     texto($('#recorte-desc'), descreverRecorte());
   }
 
+  var buscaPendente = null;
+
   function buscar() {
-    texto($('#score-valor'), estado.minScore);
     texto($('#recorte-desc'), descreverRecorte());
 
     var fonte = estado.liberado ? 'leads_completo' : 'leads_amostra';
-    var q = sb.from(fonte).select('*').gte('score', estado.minScore)
-              .order('score', { ascending: false }).limit(TETO);
 
-    var pref = prefixosAtuais();
-    if (pref) q = q.in('cnae_prefixo', pref);
-    if (estado.uf !== 'Todos') q = q.eq('uf', estado.uf);
-    var porte = porteAtual();
-    if (porte) q = q.eq('porte', porte);
+    aplicarFiltros(sb.from(fonte).select('*', { count: 'exact' }))
+      .order('score', { ascending: false })
+      .limit(TETO)
+      .then(function (r) {
+        if (r.error) {
+          linhas = []; desenhar();
+          texto($('#contagem'), 'Não consegui ler a base: ' + (r.error.message || ''));
+          return;
+        }
+        linhas = (r.data || []).map(function (l, i) {
+          // a view completa nao tem "id"; usamos o CNPJ, que e a chave
+          if (!l.id) l.id = l.cnpj || String(i);
+          return l;
+        });
+        desenhar();
 
-    q.then(function (r) {
-      if (r.error) { linhas = []; desenhar(); texto($('#contagem'), 'Não consegui ler a base.'); return; }
-      linhas = (r.data || []).map(function (l, i) {
-        // a view completa nao tem "id"; usamos o CNPJ, que e a chave
-        if (!l.id) l.id = l.cnpj || String(i);
-        return l;
+        // O count vem do proprio PostgREST e vale para o recorte inteiro, nao
+        // para as 50 linhas mostradas.
+        var total = r.count;
+        texto($('#vivo-total'), total != null ? numero(total) : '—');
+        if (total != null) {
+          texto($('#contagem'), total > TETO
+            ? 'Mostrando as ' + TETO + ' primeiras de ' + numero(total) + ' empresas'
+            : numero(total) + ' empresas neste recorte');
+        }
+        // Media do que esta a vista. Com a base inteira em jogo, calcular a
+        // media de milhoes de linhas a cada clique sairia caro.
+        var vis = linhas.filter(function (l) { return l.score != null; });
+        texto($('#vivo-score'), vis.length
+          ? Math.round(vis.reduce(function (s, l) { return s + Number(l.score); }, 0) / vis.length)
+          : '—');
       });
-      desenhar();
-    });
+  }
 
-    // Contagem e media do recorte INTEIRO, nao da pagina de 50 linhas.
-    sb.rpc('resumo_recorte', {
-      p_prefixos: pref, p_uf: estado.uf === 'Todos' ? null : estado.uf,
-      p_porte: porte, p_score: estado.minScore
-    }).then(function (r) {
-      var d = (r.data && r.data[0]) || r.data || {};
-      var total = d.total != null ? Number(d.total) : null;
-      texto($('#vivo-total'), total != null ? numero(total) : '—');
-      texto($('#vivo-score'), d.score_medio != null ? d.score_medio : '—');
-      if (total != null) {
-        texto($('#contagem'), total > TETO
-          ? 'Mostrando as ' + TETO + ' primeiras de ' + numero(total) + ' empresas'
-          : numero(total) + ' empresas neste recorte');
-      }
-    });
+  // O usuario mexe em varios filtros seguidos. Sem esta espera, cada tecla
+  // digitada na cidade viraria uma consulta.
+  function buscarLogo() {
+    estado.aberto = null;
+    if (buscaPendente) clearTimeout(buscaPendente);
+    buscaPendente = setTimeout(buscar, 280);
   }
 
   // ---- entrada da tela -----------------------------------------------------
@@ -433,9 +674,10 @@
       }
 
       var m = res.membro;
-      // "Liberado" hoje sai do papel. Cliente pagante por recorte ainda nao esta
-      // modelado no banco — e uma decisao de produto em aberto, nao um esquecimento.
-      estado.liberado = ['DONO', 'ADMIN', 'COMERCIAL'].indexOf(m.papel) >= 0;
+      // Ver contato e decisao comercial, gravada em natiiva.membros.liberado.
+      // Quem e da casa entra liberado por padrao; cliente depende da liberacao.
+      estado.liberado = m.liberado === true
+                     || ['DONO', 'ADMIN', 'COMERCIAL'].indexOf(m.papel) >= 0;
 
       texto($('#conta'), m.nome || '');
       texto($('#sair'), (m.nome || '?').trim().charAt(0).toUpperCase());
@@ -443,17 +685,74 @@
       $('#aviso-amostra').style.display = estado.liberado ? 'none' : 'block';
       $('#app-corpo').style.display = 'flex';
 
-      chips($('#chips-setor'), SETORES, 'setor');
-      chips($('#chips-uf'), UFS.map(function (u) { return { nome: u }; }), 'uf');
-      chips($('#chips-porte'), PORTES, 'porte');
+      estado.admin = ['DONO', 'ADMIN'].indexOf(m.papel) >= 0;
+
+      chips($('#chips-setor'),   SETORES,   'setor');
+      chips($('#chips-porte'),   PORTES,    'porte');
+      chips($('#chips-unid'),    UNIDADES,  'unidade');
+      chips($('#chips-faixa'),   FAIXAS,    'faixa');
+      chips($('#chips-contato'), CONTATOS,  'contato');
+
+      // Situacao comercial e a aba de acessos sao visao de quem administra.
+      // Cliente nao precisa saber o que ja foi vendido para outro.
+      if (estado.admin) {
+        $('#grupo-status').style.display = 'flex';
+        chips($('#chips-status'), SITUACOES, 'situacao');
+        $('#aba-acessos').style.display = 'inline-flex';
+      }
+
+      var sel = $('#busca-uf');
+      UFS.forEach(function (u) {
+        var o = document.createElement('option');
+        o.value = u;
+        o.textContent = u === 'EX' ? 'EX · exterior' : u;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', function () {
+        estado.uf = sel.value; buscarLogo();
+      });
+
+      var cid = $('#busca-cidade');
+      cid.addEventListener('input', function () {
+        estado.cidade = cid.value.trim(); buscarLogo();
+      });
 
       var slider = $('#score');
       slider.addEventListener('input', function () {
         estado.minScore = Number(slider.value);
-        estado.aberto = null;
         texto($('#score-valor'), estado.minScore);
+        buscarLogo();
       });
-      slider.addEventListener('change', buscar);
+
+      var cap = $('#capital');
+      cap.addEventListener('input', function () {
+        estado.capitalIdx = Number(cap.value);
+        texto($('#capital-valor'), dinheiro(CAPITAIS[estado.capitalIdx]));
+        buscarLogo();
+      });
+
+      var idade = $('#idade');
+      idade.addEventListener('input', function () {
+        estado.idadeMin = Number(idade.value);
+        texto($('#idade-valor'), estado.idadeMin + (estado.idadeMin === 1 ? ' ano' : ' anos'));
+        buscarLogo();
+      });
+
+      $('#limpar').addEventListener('click', function () {
+        estado.setor = 'Todos'; estado.uf = 'Todos'; estado.cidade = '';
+        estado.porte = 'Todos'; estado.unidade = 'Todos'; estado.faixa = 'Todas';
+        estado.contato = 'Todos'; estado.situacao = 'Todas';
+        estado.minScore = 0; estado.capitalIdx = 0; estado.idadeMin = 0;
+        sel.value = 'Todos'; cid.value = ''; slider.value = 0; cap.value = 0; idade.value = 0;
+        texto($('#score-valor'), 0);
+        texto($('#capital-valor'), 'R$ 0');
+        texto($('#idade-valor'), '0 anos');
+        [['#chips-setor', SETORES, 'setor'], ['#chips-porte', PORTES, 'porte'],
+         ['#chips-unid', UNIDADES, 'unidade'], ['#chips-faixa', FAIXAS, 'faixa'],
+         ['#chips-contato', CONTATOS, 'contato'], ['#chips-status', SITUACOES, 'situacao']
+        ].forEach(function (c) { if ($(c[0])) chips($(c[0]), c[1], c[2]); });
+        buscar();
+      });
 
       buscar();
     });
