@@ -234,6 +234,13 @@ a:focus-visible,.btn:focus-visible{
 .caso-entregas li{display:flex;justify-content:space-between;align-items:baseline;gap:var(--e4);padding:var(--e3) 0 var(--e3) var(--e4);border-left:3px solid var(--preto);border-bottom:1.5px solid #E9EBEA;font-size:16px}
 .caso-entregas li:first-child{border-top:1.5px solid #E9EBEA}
 .caso-entregas strong{font:700 16px var(--titulo);color:var(--preto);white-space:nowrap}
+.caso-mais{border-top:1.5px solid #E9EBEA}
+.caso-mais summary{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:var(--e4);cursor:pointer;font:700 16px/1.3 var(--titulo);color:var(--preto);padding:var(--e3) 0;list-style:none}
+.caso-mais summary::-webkit-details-marker{display:none}
+.caso-mais summary::after{content:'+';font:700 20px/1 var(--titulo);color:var(--aco);flex:none}
+.caso-mais[open] summary::after{content:'\2013'}
+.caso-mais p{font-size:15px;line-height:1.55;color:var(--aco);margin:0 0 var(--e3);max-width:60ch}
+.caso-mais strong{font-family:var(--titulo);font-weight:700;color:var(--preto)}
 .caso-total{font-size:17px;line-height:1.55;color:var(--preto);max-width:60ch}
 .caso-total strong{font-family:var(--titulo)}
 .caso-link{display:inline-flex;align-items:center;min-height:44px;font:500 16px var(--texto);color:var(--preto)}
@@ -478,6 +485,24 @@ a:focus-visible,.btn:focus-visible{
           <li><span>Motor de extração de dados</span><strong>2 horas</strong></li>
           <li><span>Banco, testes e sistema web</span><strong>5 horas</strong></li>
         </ul>
+        <details class="caso-mais">
+          <summary>O que tem por trás dessas 10 horas</summary>
+          <p><strong>Identidade visual</strong> — logotipo com sistema de
+          módulos, paleta, tipografia e manual da marca completo.</p>
+          <p><strong>Motor de extração</strong> — programa próprio em
+          Python + DuckDB que lê a base pública inteira da Receita
+          Federal, feito sob medida do início ao fim.</p>
+          <p><strong>Banco de dados</strong> — estrutura própria e
+          isolada no Supabase, 11 migrações versionadas, permissão por
+          pessoa e 8 testes automáticos que provam essas permissões.</p>
+          <p><strong>Carga automatizada</strong> — lê a base da Receita
+          em pedaços e envia em lotes, sem trabalho manual.</p>
+          <p><strong>Sistema web completo</strong> — login, filtro da
+          base inteira com 11 filtros, criação de base a partir do
+          recorte, atendimento empresa por empresa com roteiro e
+          tabulação, gestão de acessos e painel com hierarquia de
+          consultor e supervisor.</p>
+        </details>
         <p class="caso-total">
           Da planilha parada ao sistema no ar, com login e controle de
           acesso: <strong>10 horas de trabalho.</strong>
