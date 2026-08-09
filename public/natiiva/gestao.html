@@ -69,6 +69,7 @@
       </div>
     </a>
     <nav style="display:flex;gap:24px;flex-wrap:wrap">
+      <a class="aba" href="inicio.html">Início</a>
       <a class="aba" href="app.html">Filtrar base</a>
       <a class="aba" href="bases.html">Minhas bases</a>
       <button class="aba" id="aba-downloads">Downloads</button>
@@ -116,13 +117,28 @@
       <div style="background:var(--papel-elevado);box-shadow:0 0 0 1px var(--divisoria)">
         <div class="tabela-cab" style="padding:12px 20px">
           <span class="rotulo" style="flex:1 1 220px">Pessoa</span>
-          <span class="rotulo" style="width:120px;flex:none">Papel</span>
-          <span class="rotulo" style="width:150px;flex:none">Entra</span>
-          <span class="rotulo" style="width:180px;flex:none">Vê contato</span>
+          <span class="rotulo" style="width:130px;flex:none">Papel</span>
+          <span class="rotulo" style="width:170px;flex:none">Responde a</span>
+          <span class="rotulo" style="width:110px;flex:none">Entra</span>
+          <span class="rotulo" style="width:130px;flex:none">Vê contato</span>
           <span class="rotulo" style="width:90px;flex:none">Acesso</span>
         </div>
         <div id="pessoas"></div>
       </div>
+
+      <div id="aviso-010" class="aviso" style="display:none">
+        A coluna <strong style="font-weight:600">Responde a</strong> ainda não
+        existe no banco. Rode <code>sql/010_hierarquia_e_painel.sql</code> no
+        Supabase e recarregue esta página — o resto da tela funciona normalmente
+        até lá.
+      </div>
+
+      <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0">
+        <strong style="font-weight:600;color:var(--texto-corpo)">Responde a</strong>
+        monta a equipe. O supervisor vê quantas bases cada consultor abaixo dele
+        criou e quantas empresas cada um já atendeu — e não vê a equipe de mais
+        ninguém. Dono e admin veem todos.
+      </p>
 
       <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0">
         <strong style="font-weight:600;color:var(--texto-corpo)">Entra</strong> desligado
@@ -169,9 +185,16 @@
             <label class="rotulo" for="novo-papel">Papel</label>
             <select class="campo-sel" id="novo-papel">
               <option value="CLIENTE">Cliente — usa a base</option>
-              <option value="COMERCIAL">Comercial — uso interno da casa</option>
+              <option value="CONSULTOR">Consultor — cria e atende as próprias bases</option>
+              <option value="SUPERVISOR">Supervisor — vê os números da equipe dele</option>
               <option value="ADMIN">Admin — administra acessos</option>
               <option value="DONO">Dono — tudo</option>
+            </select>
+          </div>
+          <div class="campo" id="campo-supervisor" style="display:none">
+            <label class="rotulo" for="novo-supervisor">Responde a</label>
+            <select class="campo-sel" id="novo-supervisor">
+              <option value="">Sem supervisor</option>
             </select>
           </div>
           <div class="campo">

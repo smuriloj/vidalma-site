@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Início · Natiiva Leads</title>
+<meta name="theme-color" content="#17120F">
+<meta name="robots" content="noindex">
+<link rel="icon" href="marca/natiiva-favicon-16.svg" type="image/svg+xml">
+<link rel="stylesheet" href="natiiva.css">
+<style>
+.app-topo { position: sticky; top: 0; z-index: 20; background: var(--ferro); }
+.app-topo-env { min-height: 64px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; row-gap: 8px; }
+.aba { font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--nav-inativo); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; border-bottom: 2px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer; }
+.aba[aria-current="page"] { color: var(--papel); border-bottom-color: var(--brasa); }
+.avatar { width: 34px; height: 34px; background: var(--brasa); color: var(--papel); display: flex; align-items: center; justify-content: center; font: 600 14px 'Chivo'; flex: none; }
+
+/* Bloco da tela. Titulo, contador a direita, conteudo embaixo. */
+.bloco { display: flex; flex-direction: column; gap: 16px; }
+.bloco-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.bloco-cab a { font: 400 14px 'Chivo'; color: var(--brasa); }
+
+/* Linha compacta de base. Nao repete o cartao de "Minhas bases": aqui a
+   pergunta e "o que falta", e nao "o que aconteceu". */
+.b-linha { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid var(--divisoria-fraca); }
+.b-linha:last-child { border-bottom: 0; }
+.b-nome { flex: 1 1 240px; min-width: 0; }
+.b-nome b { display: block; font: 600 15px/1.35 'Chivo'; color: var(--ferro); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-nome span { display: block; font: 400 13px/1.4 'Chivo'; color: var(--cimento); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-prog { width: 200px; flex: none; display: flex; flex-direction: column; gap: 6px; }
+.b-prog span { font: 400 12px/1 'Chivo'; color: var(--cimento); font-variant-numeric: tabular-nums; }
+.b-acao { width: 130px; flex: none; display: flex; justify-content: flex-end; }
+.barra { height: 8px; background: var(--divisoria-fraca); display: flex; }
+.barra i { display: block; background: var(--brasa); }
+.barra i.fim { background: var(--latao); }
+
+/* Equipe */
+.e-linha { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--divisoria-fraca); }
+.e-linha:last-child { border-bottom: 0; }
+.e-nome { flex: 1 1 200px; min-width: 0; }
+.e-nome b { display: block; font: 600 15px/1.35 'Chivo'; color: var(--ferro); }
+.e-nome span { display: block; font: 400 13px/1.4 'Chivo'; color: var(--cimento); }
+.e-num { width: 92px; flex: none; font: 400 15px/1 'Chivo'; color: var(--texto-corpo); font-variant-numeric: tabular-nums; }
+.e-quando { width: 150px; flex: none; font: 400 13px/1.4 'Chivo'; color: var(--cimento); }
+.etiqueta { font: 600 11px/1 'Chivo'; letter-spacing: .1em; text-transform: uppercase; padding: 6px 10px; display: inline-block; }
+.et-escura { background: var(--ferro); color: var(--papel); }
+.et-clara { background: var(--papel-fundo); color: var(--texto-corpo); box-shadow: inset 0 0 0 1px var(--borda-campo); }
+
+.vazio { background: var(--papel-elevado); box-shadow: 0 0 0 1px var(--divisoria); padding: 48px 32px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+
+@media (max-width: 700px) {
+  .b-prog, .b-acao { width: 100%; }
+  .b-acao { justify-content: flex-start; }
+  .e-num, .e-quando { width: auto; }
+}
+</style>
+</head>
+<body data-tela="inicio">
+
+<div class="app-topo">
+  <div class="env-app app-topo-env">
+    <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads">
+      <div class="marca marca--negativo marca--curta" style="--corpo:24px" role="img" aria-label="Natiiva Leads">
+        <div class="marca-nome" aria-hidden="true">
+          <span>NAT</span>
+          <svg class="marca-simbolo" viewBox="0 0 46 64" aria-hidden="true" focusable="false">
+            <path d="M20 15.36 V3 A3 3 0 0 1 17 0 H7 L0 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M0 15.36 H20 V61 A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z" fill="#C2410C"/>
+            <path d="M26 15.36 V3 A3 3 0 0 1 29 0 H39 L46 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M26 15.36 H46 V61 A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z" fill="#C2410C"/>
+          </svg>
+          <span>VA</span>
+        </div>
+      </div>
+    </a>
+    <nav style="display:flex;gap:24px;flex-wrap:wrap">
+      <button class="aba" aria-current="page">Início</button>
+      <a class="aba" href="app.html">Filtrar base</a>
+      <a class="aba" href="bases.html">Minhas bases</a>
+      <button class="aba" id="aba-downloads">Downloads</button>
+      <a class="aba" id="aba-acessos" href="gestao.html" style="display:none">Acessos</a>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+      <span id="conta" style="font:400 14px 'Chivo';color:var(--nav-inativo)"></span>
+      <button id="sair" class="avatar" title="Sair" aria-label="Sair"></button>
+    </div>
+  </div>
+</div>
+
+<div class="env-app" style="padding-top:32px;padding-bottom:64px;display:flex;flex-direction:column;gap:40px">
+
+  <div id="carregando">
+    <p class="rotulo">Um instante</p>
+    <p style="font:400 16px 'Chivo';color:var(--cimento);margin:8px 0 0">Montando o seu painel.</p>
+  </div>
+
+  <div id="conteudo" style="display:none;flex-direction:column;gap:40px">
+
+    <!-- quem e voce ---------------------------------------------------- -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="rotulo">Início</span>
+      <h1 class="titulo-pagina" style="font-size:38px" id="saudacao">Olá</h1>
+      <p class="leitura" style="font:400 16px/1.6 'Chivo';color:var(--texto-corpo);margin:0" id="explica"></p>
+    </div>
+
+    <div id="aviso-010" class="aviso" style="display:none">
+      O painel de números ainda não existe no banco. Rode
+      <code>sql/010_hierarquia_e_painel.sql</code> no Supabase e recarregue esta
+      página. Até lá, suas bases aparecem normalmente logo abaixo.
+    </div>
+
+    <!-- o seu trabalho -------------------------------------------------- -->
+    <div class="bloco" id="bloco-meu">
+      <div class="bloco-cab">
+        <span class="rotulo">O seu trabalho</span>
+        <span id="meu-quando" style="font:400 13px 'Chivo';color:var(--cimento)"></span>
+      </div>
+      <div class="marcadores">
+        <div class="marcador"><b id="m-bases">—</b><span>Bases criadas</span></div>
+        <div class="marcador"><b id="m-empresas">—</b><span>Empresas nas bases</span></div>
+        <div class="marcador"><b id="m-atendidas">—</b><span>Já atendidas</span></div>
+        <div class="marcador"><b id="m-pct">—</b><span>Do total atendido</span></div>
+        <div class="marcador"><b id="m-encerradas">—</b><span>Encerradas</span>
+          <small>Tabulações que fecham o assunto</small></div>
+      </div>
+    </div>
+
+    <!-- suas bases ------------------------------------------------------ -->
+    <div class="bloco">
+      <div class="bloco-cab">
+        <span class="rotulo">Bases em atendimento</span>
+        <a href="bases.html">Ver todas as bases →</a>
+      </div>
+      <div id="lista-bases" style="background:var(--papel-elevado);box-shadow:0 0 0 1px var(--divisoria)"></div>
+      <div id="sem-bases" class="vazio" style="display:none">
+        <span style="font:700 20px 'Chivo';color:var(--ferro)">Nenhuma base ainda</span>
+        <p class="leitura" style="font:400 15px/1.6 'Chivo';color:var(--cimento);margin:0;max-width:46ch">
+          Vá em <strong style="font-weight:600">Filtrar base</strong>, monte o recorte
+          que você vai atacar e clique em <strong style="font-weight:600">Salvar
+          recorte</strong>. Ele vira uma base com nome, e a partir daí é só atender.
+        </p>
+        <a class="botao botao--brasa" href="app.html">Montar o primeiro recorte</a>
+      </div>
+    </div>
+
+    <!-- a sua equipe ---------------------------------------------------- -->
+    <div class="bloco" id="bloco-equipe" style="display:none">
+      <div class="bloco-cab">
+        <span class="rotulo">A sua equipe</span>
+        <span id="equipe-resumo" style="font:400 13px 'Chivo';color:var(--cimento)"></span>
+      </div>
+      <div style="background:var(--papel-elevado);box-shadow:0 0 0 1px var(--divisoria)">
+        <div class="tabela-cab" style="padding:12px 20px">
+          <span class="rotulo" style="flex:1 1 200px">Pessoa</span>
+          <span class="rotulo" style="width:92px;flex:none">Bases</span>
+          <span class="rotulo" style="width:92px;flex:none">Empresas</span>
+          <span class="rotulo" style="width:92px;flex:none">Atendidas</span>
+          <span class="rotulo" style="width:92px;flex:none">Andamento</span>
+          <span class="rotulo" style="width:150px;flex:none">Último atendimento</span>
+        </div>
+        <div id="equipe"></div>
+      </div>
+      <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0">
+        Aparece quem responde a você em <strong style="font-weight:600;color:var(--texto-corpo)">Acessos</strong>.
+        Se faltar alguém na lista, é porque a linha <em>Responde a</em> daquela
+        pessoa ainda está vazia.
+      </p>
+    </div>
+
+    <!-- o estoque ------------------------------------------------------- -->
+    <div class="bloco" id="bloco-estoque" style="display:none">
+      <div class="bloco-cab">
+        <span class="rotulo">Estoque da Natiiva</span>
+        <a href="app.html">Filtrar a base completa →</a>
+      </div>
+      <div class="marcadores">
+        <div class="marcador"><b id="e-disp">—</b><span>Disponíveis</span>
+          <small>Podem entrar em qualquer base</small></div>
+        <div class="marcador"><b id="e-res">—</b><span>Reservados</span>
+          <small>Presos a uma base já criada</small></div>
+        <div class="marcador"><b id="e-ent">—</b><span>Entregues</span></div>
+        <div class="marcador"><b id="e-tot">—</b><span>Total na base</span></div>
+        <div class="marcador"><b id="e-score" class="latao">—</b><span>Score médio</span></div>
+      </div>
+      <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0">
+        Só dono, admin e supervisor veem este bloco. Reservado e entregue são o
+        histórico comercial da base — a carga mensal atualiza os outros campos e
+        nunca sobrescreve esses dois.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>
