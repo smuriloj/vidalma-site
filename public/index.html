@@ -224,6 +224,12 @@ a:focus-visible,.btn:focus-visible{
 .caso-topo img{height:40px;width:auto;display:block}
 .caso-etiqueta{background:var(--preto);color:var(--nevoa);font:500 12px/1 var(--texto);letter-spacing:.06em;text-transform:uppercase;padding:7px 12px;border-radius:var(--raio)}
 .caso-desc{font-size:16px;line-height:1.55;color:var(--aco);max-width:60ch}
+.caso-antes{border-left:3px solid var(--aco);padding:var(--e2) 0 var(--e2) var(--e4);display:flex;flex-direction:column;gap:var(--e2)}
+.caso-antes span{font:500 12px/1 var(--texto);letter-spacing:.1em;text-transform:uppercase;color:var(--aco)}
+.caso-antes p{font-size:16px;line-height:1.55;color:var(--aco);max-width:60ch}
+.caso-depois{background:var(--preto);padding:var(--e4);display:flex;flex-direction:column;gap:var(--e2)}
+.caso-depois span{font:800 12px/1 var(--titulo);letter-spacing:.1em;text-transform:uppercase;color:var(--amarelo)}
+.caso-depois p{font-size:16px;line-height:1.55;color:var(--nevoa);max-width:60ch}
 .caso-entregas{list-style:none;margin:0;padding:0}
 .caso-entregas li{display:flex;justify-content:space-between;align-items:baseline;gap:var(--e4);padding:var(--e3) 0 var(--e3) var(--e4);border-left:3px solid var(--preto);border-bottom:1.5px solid #E9EBEA;font-size:16px}
 .caso-entregas li:first-child{border-top:1.5px solid #E9EBEA}
@@ -456,11 +462,17 @@ a:focus-visible,.btn:focus-visible{
           <img src="/natiiva/marca/natiiva-leads-lockup-mono-454C55.svg" alt="Natiiva Leads">
           <span class="caso-etiqueta">Criação da casa</span>
         </div>
-        <p class="caso-desc">
-          Plataforma de leads B2B industriais: 581 mil indústrias da base
-          pública da Receita, com 11 filtros, pontuação de 0 a 100 e
-          acesso controlado por pessoa.
-        </p>
+        <div class="caso-antes">
+          <span>O problema</span>
+          <p>581 mil indústrias da base pública da Receita presas numa
+          planilha, numa máquina só. Sem login, sem filtro, sem controle
+          de quem vê o quê — sem jeito de vender por assinatura.</p>
+        </div>
+        <div class="caso-depois">
+          <span>Resolvido</span>
+          <p>Sistema no ar: login, 11 filtros, pontuação de 0 a 100 e
+          acesso por pessoa. Pronto para vender por assinatura.</p>
+        </div>
         <ul class="caso-entregas">
           <li><span>Identidade visual completa</span><strong>3 horas</strong></li>
           <li><span>Motor de extração de dados</span><strong>2 horas</strong></li>
