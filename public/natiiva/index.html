@@ -3,15 +3,316 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Natiiva · Vidalma</title>
-<meta name="theme-color" content="#101418">
-<meta name="robots" content="noindex">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<style>html,body{margin:0;background:#101418;min-height:100vh}</style>
+<title>Natiiva Leads — indústrias ativas, contato certo</title>
+<meta name="description" content="39.814 indústrias ativas, em 28 estados, com telefone e e-mail do cadastro do CNPJ e score de 0 a 100. Base pública da Receita Federal, higienizada e pontuada.">
+<meta name="theme-color" content="#17120F">
+<link rel="icon" href="marca/natiiva-favicon-16.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="marca/natiiva-app-icon.svg">
+<link rel="stylesheet" href="natiiva.css">
+<style>
+.hero { background: var(--ferro); padding: 96px 0 104px; }
+.hero-env { display: flex; flex-wrap: wrap; gap: 72px; align-items: flex-start; }
+.hero-esq { flex: 1.25; min-width: 400px; display: flex; flex-direction: column; gap: 28px; }
+.hero-dir { flex: 1; min-width: 350px; }
+.hero h1 {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700;
+  font-size: 62px; line-height: 1.0; letter-spacing: -0.032em; color: var(--papel);
+  margin: 0; text-wrap: balance;
+}
+.hero p.sub { font: 400 18px/1.6 'Chivo'; color: var(--texto-escuro); margin: 0; max-width: 560px; }
+.hero-botoes { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.amostra { background: var(--papel); box-shadow: 0 0 0 1px var(--divisoria); }
+.amostra-cab { padding: 14px 20px; background: var(--papel-fundo); border-bottom: 1px solid var(--divisoria); display: flex; justify-content: space-between; gap: 12px; }
+.amostra-linha { padding: 14px 20px; border-bottom: 1px solid var(--divisoria-fraca); display: flex; gap: 16px; align-items: center; }
+.amostra-linha b { display: block; font: 600 14px/1.35 'Chivo'; color: var(--ferro); }
+.amostra-linha small { display: block; font: 400 13px/1.4 'Chivo'; color: var(--cimento); }
+.amostra-rod { padding: 16px 20px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 1px; }
+.card { padding: 32px 28px; display: flex; flex-direction: column; gap: 10px; }
+.card h3 { font: 700 18px/1.3 'Chivo'; color: var(--ferro); margin: 0; }
+.card p { font: 400 15px/1.6 'Chivo'; color: var(--texto-corpo); margin: 0; }
+.card--ferro { background: var(--ferro); }
+.card--ferro h3 { color: var(--papel); }
+.card--ferro p { color: var(--texto-escuro); }
+
+.passos { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 34px; }
+.passo { border-top: 3px solid var(--brasa); padding-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+.passo b { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800; font-size: 46px; line-height: 1; color: var(--divisoria); }
+.passo h3 { font: 700 18px/1.3 'Chivo'; color: var(--ferro); margin: 0; }
+.passo p { font: 400 15px/1.6 'Chivo'; color: var(--texto-corpo); margin: 0; }
+
+.numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 32px; }
+.numeros div { display: flex; flex-direction: column; gap: 6px; }
+.numeros b { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 42px; line-height: 1; color: var(--papel); }
+.numeros b.latao { color: var(--latao); }
+.numeros span { font: 600 11px/1 'Chivo'; letter-spacing: .18em; text-transform: uppercase; color: var(--cimento); }
+
+.setores { display: flex; flex-wrap: wrap; gap: 10px; }
+.setor { padding: 12px 18px; background: var(--papel-elevado); box-shadow: 0 0 0 1px var(--divisoria); font: 400 15px/1 'Chivo'; color: var(--texto-corpo); }
+
+.cta { background: var(--ferrugem); padding: 62px 52px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start; }
+.cta h2 { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 42px; line-height: 1.05; letter-spacing: -0.028em; color: var(--papel); margin: 0; text-wrap: balance; }
+.cta p { font: 400 17px/1.6 'Chivo'; color: #F5DFD2; margin: 0; max-width: 620px; }
+.botao--borda-clara-quente { background: transparent; border-color: #D08A64; color: var(--papel); }
+.botao--borda-clara-quente:hover { background: var(--ferro); border-color: var(--ferro); }
+
+.rodape { background: var(--papel); border-top: 1px solid var(--divisoria); padding: 56px 0 40px; }
+.rodape-topo { display: flex; flex-wrap: wrap; gap: 40px; justify-content: space-between; }
+.rodape-fim { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--divisoria); display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
+
+@media (max-width: 900px) {
+  .hero { padding: 56px 0 64px; }
+  .hero h1 { font-size: 40px; }
+  .hero-env { gap: 40px; }
+  .cta { padding: 40px 24px; }
+  .cta h2 { font-size: 30px; }
+}
+</style>
 </head>
-<body>
-<div data-tela="redireciona"></div>
-<script defer src="supabase.js"></script>
+<body data-tela="home">
+
+<!-- HEADER ---------------------------------------------------------------- -->
+<header class="topo">
+  <div class="env-site topo-env">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div class="marca marca--negativo marca--curta" style="--corpo:30px" role="img" aria-label="Natiiva Leads">
+        <div class="marca-nome" aria-hidden="true">
+          <span>NAT</span>
+          <svg class="marca-simbolo" viewBox="0 0 46 64" aria-hidden="true" focusable="false">
+            <path d="M20 15.36 V3 A3 3 0 0 1 17 0 H7 L0 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M0 15.36 H20 V61 A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z" fill="#C2410C"/>
+            <path d="M26 15.36 V3 A3 3 0 0 1 29 0 H39 L46 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M26 15.36 H46 V61 A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z" fill="#C2410C"/>
+          </svg>
+          <span>VA</span>
+        </div>
+      </div>
+      <div class="endosso endosso--escuro" style="font-size:10.5px">uma criação <b>VIDALMA</b></div>
+    </div>
+
+    <nav style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;row-gap:4px">
+      <a class="nav-link" href="#base">A base</a>
+      <a class="nav-link" href="#como">Como funciona</a>
+      <a class="nav-link" href="#setores">Setores</a>
+      <span class="nav-divisor" aria-hidden="true"></span>
+      <a class="botao botao--brasa" data-zap href="#" target="_blank" rel="noopener">Falar no WhatsApp</a>
+      <a class="botao botao--borda-escura" href="login.html">Área do cliente</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO ------------------------------------------------------------------ -->
+<section class="hero">
+  <div class="env-site hero-env">
+    <div class="hero-esq">
+      <span class="rotulo rotulo--latao">39.814 indústrias ativas · 28 estados</span>
+      <h1>Seu time gasta o dia pesquisando em vez de vendendo</h1>
+      <p class="sub">
+        A base pública da Receita Federal, filtrada só em indústria ativa, pontuada de 0 a 100
+        e entregue com telefone, e-mail e um roteiro de abordagem por setor. Você escolhe o
+        recorte e leva a lista pronta.
+      </p>
+      <div class="hero-botoes">
+        <a class="botao botao--brasa" href="login.html">Ver a base agora</a>
+        <a class="botao botao--borda-escura" data-zap href="#" target="_blank" rel="noopener">Falar com Natiiva</a>
+      </div>
+      <p class="frase" style="margin:0">Indústria viva, contato certo</p>
+    </div>
+
+    <!-- Amostra: quatro linhas FIXAS, escritas aqui no HTML.
+         Nao vem do banco de proposito. Se viessem, existiria uma API publica
+         por onde daria para paginar a base inteira mascarada — e 18 caracteres
+         de razao social mais cidade e UF identificam 90% das empresas. -->
+    <div class="hero-dir">
+      <div class="amostra">
+        <div class="amostra-cab">
+          <span class="rotulo">Amostra do recorte</span>
+          <span class="rotulo">Score</span>
+        </div>
+
+        <div class="amostra-linha">
+          <div style="flex:1;min-width:0">
+            <b class="corta">METALURGICA SANTA T••••••••</b>
+            <small class="corta">Metalurgia · Sorocaba/SP</small>
+          </div>
+          <span class="score-num">93</span>
+        </div>
+        <div class="amostra-linha">
+          <div style="flex:1;min-width:0">
+            <b class="corta">LATICINIOS VALE DO•••••</b>
+            <small class="corta">Alimentos · Juiz de Fora/MG</small>
+          </div>
+          <span class="score-num">88</span>
+        </div>
+        <div class="amostra-linha">
+          <div style="flex:1;min-width:0">
+            <b class="corta">CERAMICA BOA VISTA••••••</b>
+            <small class="corta">Cimento e cerâmica · Criciúma/SC</small>
+          </div>
+          <span class="score-num">84</span>
+        </div>
+        <div class="amostra-linha">
+          <div style="flex:1;min-width:0">
+            <b class="corta">PLASTICOS UNIAO IN••••••••</b>
+            <small class="corta">Plástico · Joinville/SC</small>
+          </div>
+          <span class="score-num">79</span>
+        </div>
+
+        <div class="amostra-rod">
+          <a class="botao botao--invertido botao--largo" href="login.html">Filtrar o meu recorte</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- A BASE ---------------------------------------------------------------- -->
+<section class="secao" id="base">
+  <div class="env-site" style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <span class="rotulo">A base</span>
+      <h2 class="titulo-pagina" style="max-width:16ch">O que você recebe</h2>
+    </div>
+    <div class="cards">
+      <div class="card cartao">
+        <span class="rotulo">01</span>
+        <h3>Higienizados</h3>
+        <p>Só CNPJ ativo. A base é refeita a cada competência publicada pela Receita, e quem fechou sai.</p>
+      </div>
+      <div class="card cartao">
+        <span class="rotulo">02</span>
+        <h3>Quentes</h3>
+        <p>Score de 0 a 100, montado a partir de setor, porte, capital social, maturidade e existência de contato.</p>
+      </div>
+      <div class="card cartao">
+        <span class="rotulo">03</span>
+        <h3>Completos</h3>
+        <p>Razão social, CNPJ, endereço, telefone e e-mail — os declarados no cadastro do CNPJ. 96% têm e-mail.</p>
+      </div>
+      <div class="card card--ferro">
+        <span class="rotulo rotulo--latao">04 · só aqui</span>
+        <h3>Com roteiro de abordagem</h3>
+        <p>Por setor: quem decide a compra, a dor provável daquele tipo de fábrica e uma frase para abrir a ligação.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA --------------------------------------------------------- -->
+<section class="secao" id="como" style="padding-top:0">
+  <div class="env-site" style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <span class="rotulo">Como funciona</span>
+      <h2 class="titulo-pagina" style="max-width:16ch">Três passos</h2>
+    </div>
+    <div class="passos">
+      <div class="passo">
+        <b>01</b>
+        <h3>Escolha o recorte</h3>
+        <p>Setor, estado, porte e score mínimo. A contagem e o score médio se movem enquanto você filtra.</p>
+      </div>
+      <div class="passo">
+        <b>02</b>
+        <h3>Confira antes de levar</h3>
+        <p>A amostra mostra score, cargo e dor provável de cada empresa. Só o contato fica retido.</p>
+      </div>
+      <div class="passo">
+        <b>03</b>
+        <h3>Baixe e ligue</h3>
+        <p>CSV que abre no Excel, com o roteiro de abordagem em cada linha. Seu vendedor liga sabendo o que dizer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NUMEROS --------------------------------------------------------------- -->
+<section class="faixa-ferro" style="padding:56px 0">
+  <div class="env-site numeros">
+    <div><b>39.814</b><span>indústrias ativas</span></div>
+    <div><b class="latao">76</b><span>score médio</span></div>
+    <div><b>96%</b><span>com e-mail</span></div>
+    <div><b>28</b><span>estados</span></div>
+  </div>
+</section>
+
+<!-- SETORES --------------------------------------------------------------- -->
+<section class="secao" id="setores">
+  <div class="env-site" style="display:flex;flex-direction:column;gap:32px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <span class="rotulo">Setores</span>
+      <h2 class="titulo-pagina" style="max-width:20ch">Dez setores mapeados</h2>
+      <p class="leitura" style="font:400 16px/1.6 'Chivo';color:var(--texto-corpo);margin:0">
+        Cada um com o próprio roteiro: o cargo que decide a compra, a dor típica daquele
+        tipo de operação e a frase de abertura.
+      </p>
+    </div>
+    <div class="setores">
+      <span class="setor">Metalurgia</span>
+      <span class="setor">Alimentos</span>
+      <span class="setor">Cimento e cerâmica</span>
+      <span class="setor">Mineração</span>
+      <span class="setor">Plástico</span>
+      <span class="setor">Papel</span>
+      <span class="setor">Química</span>
+      <span class="setor">Têxtil</span>
+      <span class="setor">Reciclagem</span>
+      <span class="setor">Transporte</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA ------------------------------------------------------------------- -->
+<section style="padding-bottom:88px">
+  <div class="env-site">
+    <div class="cta">
+      <h2>A lista já existe. Falta você escolher o recorte.</h2>
+      <p>Entre e filtre a base pelos setores e estados que o seu time atende. A amostra é aberta — você vê a qualidade antes de decidir.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="botao botao--papel" href="login.html">Área do cliente</a>
+        <a class="botao botao--borda-clara-quente" data-zap href="#" target="_blank" rel="noopener">Falar no WhatsApp</a>
+      </div>
+      <p data-zap-aviso style="display:none;margin:0;font:400 14px/1.5 'Chivo';color:#F5DFD2">
+        Canal de WhatsApp em configuração.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- RODAPE ---------------------------------------------------------------- -->
+<footer class="rodape">
+  <div class="env-site">
+    <div class="rodape-topo">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="marca" style="--corpo:44px;width:max-content" role="img" aria-label="Natiiva Leads">
+          <div class="marca-leads" aria-hidden="true"><span>l</span><span>e</span><span>a</span><span>d</span><span>s</span></div>
+          <div class="marca-filete" aria-hidden="true"></div>
+          <div class="marca-nome" aria-hidden="true">
+            <span>NAT</span>
+            <svg class="marca-simbolo" viewBox="0 0 46 64" aria-hidden="true" focusable="false">
+              <path d="M20 15.36 V3 A3 3 0 0 1 17 0 H7 L0 7 V15.36 Z" fill="#C9A227"/>
+              <path d="M0 15.36 H20 V61 A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z" fill="#C2410C"/>
+              <path d="M26 15.36 V3 A3 3 0 0 1 29 0 H39 L46 7 V15.36 Z" fill="#C9A227"/>
+              <path d="M26 15.36 H46 V61 A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z" fill="#C2410C"/>
+            </svg>
+            <span>VA</span>
+          </div>
+        </div>
+        <p class="frase" style="margin:0;font-size:18px">Indústria viva, contato certo</p>
+      </div>
+
+      <p id="lgpd" style="max-width:520px;font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0"></p>
+    </div>
+
+    <div class="rodape-fim">
+      <div class="endosso">Natiiva, uma criação <b>VIDALMA</b></div>
+      <a href="https://vidalma.com.br/natiiva" style="font:400 13px/1 'Chivo';color:var(--cimento);text-decoration:none">vidalma.com.br/natiiva</a>
+    </div>
+  </div>
+</footer>
+
 <script defer src="config.js"></script>
 <script defer src="app.js"></script>
 </body>

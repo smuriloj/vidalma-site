@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filtrar base · Natiiva Leads</title>
+<meta name="theme-color" content="#17120F">
+<meta name="robots" content="noindex">
+<link rel="icon" href="marca/natiiva-favicon-16.svg" type="image/svg+xml">
+<link rel="stylesheet" href="natiiva.css">
+<style>
+.app-topo { position: sticky; top: 0; z-index: 20; background: var(--ferro); }
+.app-topo-env { min-height: 64px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; row-gap: 8px; }
+.aba {
+  font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--nav-inativo);
+  text-decoration: none; min-height: 44px; display: inline-flex; align-items: center;
+  border-bottom: 2px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer;
+}
+.aba[aria-current="page"] { color: var(--papel); border-bottom-color: var(--brasa); }
+.avatar { width: 34px; height: 34px; background: var(--brasa); color: var(--papel); display: flex; align-items: center; justify-content: center; font: 600 14px 'Chivo'; flex: none; }
+
+.app-corpo { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; padding: 32px 0 64px; }
+/* flex-basis 296 na sidebar e 340 na tabela. O aviso do manual e explicito:
+   quem decide a quebra e o flex-basis, nao o min-width. Com basis de 620 a
+   tabela cairia para baixo em qualquer viewport abaixo de 1008px. */
+.app-lado { flex: 0 1 296px; min-width: 264px; display: flex; flex-direction: column; gap: 20px; }
+.app-tabela { flex: 1 1 340px; min-width: 340px; display: flex; flex-direction: column; gap: 20px; }
+
+.grupo { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.grupo + .grupo { border-top: 1px solid var(--divisoria-fraca); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.grupo input[type=range] { width: 100%; accent-color: var(--brasa); }
+
+.vivos { background: var(--ferro); padding: 20px; display: flex; gap: 28px; flex-wrap: wrap; }
+.vivos div { display: flex; flex-direction: column; gap: 4px; }
+.vivos b { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 34px; line-height: 1; color: var(--papel); }
+.vivos b.latao { color: var(--latao); }
+.vivos span { font: 600 11px/1 'Chivo'; letter-spacing: .18em; text-transform: uppercase; color: var(--cimento); }
+
+.recorte-topo { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; }
+.recorte-titulo { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; font-size: 30px; line-height: 1.08; letter-spacing: -0.028em; color: var(--ferro); margin: 0; }
+.tabela-rodape { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font: 400 13px/1.5 'Chivo'; color: var(--cimento); }
+.vazio { padding: 56px 20px; text-align: center; display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 700px) { .col-contato { display: none; } }
+</style>
+</head>
+<body data-tela="app">
+
+<div class="app-topo">
+  <div class="env-app app-topo-env">
+    <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads">
+      <div class="marca marca--negativo marca--curta" style="--corpo:24px" role="img" aria-label="Natiiva Leads">
+        <div class="marca-nome" aria-hidden="true">
+          <span>NAT</span>
+          <svg class="marca-simbolo" viewBox="0 0 46 64" aria-hidden="true" focusable="false">
+            <path d="M20 15.36 V3 A3 3 0 0 1 17 0 H7 L0 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M0 15.36 H20 V61 A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z" fill="#C2410C"/>
+            <path d="M26 15.36 V3 A3 3 0 0 1 29 0 H39 L46 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M26 15.36 H46 V61 A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z" fill="#C2410C"/>
+          </svg>
+          <span>VA</span>
+        </div>
+      </div>
+    </a>
+    <nav style="display:flex;gap:24px;flex-wrap:wrap">
+      <button class="aba" aria-current="page">Filtrar base</button>
+      <button class="aba" id="aba-listas">Minhas listas</button>
+      <button class="aba" id="aba-downloads">Downloads</button>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+      <span id="conta" style="font:400 14px 'Chivo';color:var(--nav-inativo)"></span>
+      <button id="sair" class="avatar" title="Sair" aria-label="Sair"></button>
+    </div>
+  </div>
+</div>
+
+<div class="env-app">
+  <div id="carregando" style="padding:64px 0">
+    <p class="rotulo">Um instante</p>
+    <p style="font:400 16px 'Chivo';color:var(--cimento);margin:8px 0 0">Conferindo seu acesso.</p>
+  </div>
+
+  <div id="aviso-banco" style="display:none;padding:40px 0">
+    <div class="aviso leitura">
+      <strong style="display:block;font-weight:600;color:var(--ferro);margin-bottom:6px">Seu acesso funcionou. O banco ainda não está de pé.</strong>
+      Não é erro de senha nem de permissão — o login passou. Falta executar o schema
+      <strong style="font-weight:600">natiiva</strong> no Supabase e liberá-lo em
+      Settings → API → Exposed schemas. O SQL está pronto e testado, em
+      <strong style="font-weight:600">sql/001_schema.sql</strong>.
+    </div>
+  </div>
+
+  <div id="app-corpo" class="app-corpo" style="display:none">
+
+    <!-- filtros --------------------------------------------------------- -->
+    <aside class="app-lado">
+      <div class="cartao">
+        <div class="grupo">
+          <span class="rotulo">Setor industrial</span>
+          <div class="chips" id="chips-setor"></div>
+        </div>
+        <div class="grupo">
+          <span class="rotulo">Estado</span>
+          <div class="chips" id="chips-uf"></div>
+        </div>
+        <div class="grupo">
+          <span class="rotulo">Porte</span>
+          <div class="chips" id="chips-porte"></div>
+        </div>
+        <div class="grupo">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+            <label class="rotulo" for="score">Score mínimo</label>
+            <span id="score-valor" class="score-num">70</span>
+          </div>
+          <input type="range" id="score" min="0" max="100" step="5" value="70">
+        </div>
+      </div>
+
+      <div class="vivos">
+        <div><b id="vivo-total">—</b><span>empresas</span></div>
+        <div><b id="vivo-score" class="latao">—</b><span>score médio</span></div>
+      </div>
+    </aside>
+
+    <!-- recorte --------------------------------------------------------- -->
+    <section class="app-tabela">
+      <div class="recorte-topo">
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+          <span class="rotulo">Seu recorte</span>
+          <h1 class="recorte-titulo" id="recorte-desc">Toda a base</h1>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="botao botao--borda-clara" id="btn-salvar">Salvar recorte</button>
+          <button class="botao botao--brasa" id="btn-cta">Baixar CSV</button>
+        </div>
+      </div>
+
+      <div class="aviso leitura" id="aviso-amostra" style="display:none">
+        Você está vendo uma amostra. Razão social, telefone e e-mail aparecem parciais,
+        e a frase de abertura fica retida. Score, cargo e dor provável ficam à vista de
+        propósito — é o que prova a qualidade antes da compra.
+      </div>
+
+      <div class="tabela">
+        <div class="tabela-cab">
+          <span class="rotulo col-empresa">Empresa</span>
+          <span class="rotulo col-contato">Contato</span>
+          <span class="rotulo col-score" style="justify-content:flex-end">Score</span>
+        </div>
+        <div id="linhas"></div>
+        <div class="vazio" id="vazio" style="display:none">
+          <span style="font:600 16px 'Chivo';color:var(--ferro)">Nenhuma empresa neste recorte</span>
+          <span style="font:400 15px 'Chivo';color:var(--cimento)">Baixe o score mínimo ou solte um dos filtros.</span>
+        </div>
+      </div>
+
+      <div class="tabela-rodape">
+        <span id="contagem"></span>
+        <span>Clique na linha para ver o roteiro de abordagem</span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>
