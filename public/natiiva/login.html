@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Área do cliente · Natiiva Leads</title>
+<meta name="theme-color" content="#17120F">
+<meta name="robots" content="noindex">
+<link rel="icon" href="marca/natiiva-favicon-16.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="marca/natiiva-app-icon.svg">
+<link rel="stylesheet" href="natiiva.css">
+<style>
+.login { min-height: 100vh; display: flex; flex-wrap: wrap; }
+.login-marca {
+  flex: 1.1; min-width: 380px; background: var(--ferro);
+  padding: 64px 56px; display: flex; flex-direction: column; justify-content: space-between; gap: 56px;
+}
+.login-form {
+  flex: 1; min-width: 380px; background: var(--papel);
+  padding: 64px 56px; display: flex; align-items: center; justify-content: center;
+}
+.login-form-env { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 28px; }
+.login-h1 {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700;
+  font-size: 38px; line-height: 1.05; letter-spacing: -0.028em; color: var(--ferro); margin: 0;
+}
+.login-frase { font: italic 400 40px/1.2 'Instrument Serif', Georgia, serif; color: var(--papel); margin: 0; }
+.login-erro { display: none; border-left: 3px solid var(--brasa); padding: 12px 16px; background: var(--papel-elevado); }
+.login-erro p { margin: 0; font: 400 15px/1.5 'Chivo', system-ui, sans-serif; color: var(--ferro); }
+.login-ajuda { display: flex; gap: 24px; flex-wrap: wrap; }
+.login-ajuda a { font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--cimento); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+.login-ajuda a:hover { color: var(--ferro); }
+.login-cliente { border-top: 1px solid var(--divisoria); padding-top: 28px; display: flex; flex-direction: column; gap: 16px; }
+@media (max-width: 760px) {
+  .login-marca, .login-form { padding: 40px 24px; min-width: 100%; }
+  .login-frase { font-size: 28px; }
+}
+</style>
+</head>
+<body data-tela="login">
+<div class="login">
+
+  <!-- coluna escura ------------------------------------------------------- -->
+  <div class="login-marca">
+    <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads — voltar ao site">
+      <div class="marca marca--negativo" style="--corpo:44px;width:max-content" role="img" aria-label="Natiiva Leads">
+        <div class="marca-leads" aria-hidden="true"><span>l</span><span>e</span><span>a</span><span>d</span><span>s</span></div>
+        <div class="marca-filete" aria-hidden="true"></div>
+        <div class="marca-nome" aria-hidden="true">
+          <span>NAT</span>
+          <svg class="marca-simbolo" viewBox="0 0 46 64" aria-hidden="true" focusable="false">
+            <path d="M20 15.36 V3 A3 3 0 0 1 17 0 H7 L0 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M0 15.36 H20 V61 A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z" fill="#C2410C"/>
+            <path d="M26 15.36 V3 A3 3 0 0 1 29 0 H39 L46 7 V15.36 Z" fill="#C9A227"/>
+            <path d="M26 15.36 H46 V61 A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z" fill="#C2410C"/>
+          </svg>
+          <span>VA</span>
+        </div>
+      </div>
+    </a>
+
+    <div style="display:flex;flex-direction:column;gap:24px;max-width:460px">
+      <p class="login-frase">Indústria viva, contato certo</p>
+      <p style="margin:0;font:400 16px/1.6 'Chivo';color:var(--texto-escuro)">
+        39.814 indústrias ativas, em 28 estados e 4.183 municípios. Score médio 76 de 100,
+        96% com e-mail no cadastro. Base pública da Receita Federal, atualizada por competência.
+      </p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="endosso endosso--escuro">Natiiva, uma criação <b>VIDALMA</b></div>
+      <div style="font:400 13px/1.5 'Chivo';color:#5E554C">Dados públicos da Receita Federal · LGPD</div>
+    </div>
+  </div>
+
+  <!-- coluna clara -------------------------------------------------------- -->
+  <div class="login-form">
+    <div class="login-form-env">
+      <h1 class="login-h1">Área do cliente</h1>
+
+      <form id="form-entrar" style="display:flex;flex-direction:column;gap:20px">
+        <div class="campo">
+          <label class="rotulo" for="email">E-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required placeholder="voce@suaempresa.com.br">
+        </div>
+        <div class="campo">
+          <label class="rotulo" for="senha">Senha</label>
+          <input id="senha" name="senha" type="password" autocomplete="current-password" required placeholder="Sua senha">
+        </div>
+        <div class="login-erro" id="erro" role="alert"><p></p></div>
+        <button type="submit" class="botao botao--brasa botao--largo">Entrar</button>
+      </form>
+
+      <div class="login-ajuda">
+        <a href="#" id="esqueci">Esqueci a senha</a>
+        <a href="index.html">Voltar ao site</a>
+      </div>
+
+      <div class="login-cliente">
+        <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo)">
+          Ainda não é cliente? A gente libera seu acesso no mesmo dia.
+        </p>
+        <a class="botao botao--invertido" data-zap href="#" target="_blank" rel="noopener">Falar no WhatsApp</a>
+        <p data-zap-aviso style="display:none;margin:0;font:400 13px/1.5 'Chivo';color:var(--cimento)">
+          Canal de WhatsApp em configuração.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>

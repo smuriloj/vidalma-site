@@ -1,0 +1,355 @@
+/* =============================================================================
+   Natiiva Leads — sistema de design
+   =============================================================================
+   Recriado a partir do README do pacote da marca (design_handoff_natiiva).
+   Toda medida daqui sai de la; nada foi escolhido no olho.
+
+   As tres regras que o manual chama de nao negociaveis e que este arquivo
+   respeita por construcao:
+     1. Raio 0 em tudo. Nenhum canto arredondado, em nenhum componente.
+     2. Nenhuma sombra. Hierarquia se faz com cor e filete. O unico box-shadow
+        do arquivo e o truque de filete de 1px em celula de grade, que o proprio
+        manual manda usar.
+     3. Latao so no corte do simbolo e em numero de score. Em qualquer outra
+        coisa, a marca mente sobre o dado.
+   ============================================================================= */
+
+/* ---- fontes, servidas pelo proprio site ---------------------------------- */
+/* Baixadas do Google Fonts, subset latino. Servidas daqui de proposito: nenhum
+   IP de visitante vai para o Google, e a pagina nao depende de CDN externo. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url('fontes/Bricolage-variable-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chivo';
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('fontes/Chivo-variable-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fontes/InstrumentSerif-italic-latin.woff2') format('woff2');
+}
+
+/* ---- tokens -------------------------------------------------------------- */
+:root {
+  --ferro:          #17120F;
+  --brasa:          #C2410C;
+  --latao:          #C9A227;
+  --latao-escuro:   #A0801C;
+  --ferrugem:       #A63D17;
+  --papel:          #FAF5EC;
+  --papel-elevado:  #FFFDF9;
+  --papel-fundo:    #F5EFE2;
+  --cimento:        #8A7F72;
+  --divisoria:      #E4DACA;
+  --divisoria-fraca:#EDE4D5;
+  --borda-campo:    #DED3C0;
+  --texto-corpo:    #4A423A;
+  --texto-escuro:   #B0A596;
+  --divisoria-esc:  #463D35;
+  --nav-inativo:    #A79C8E;
+
+  --larg-site: 1240px;
+  --larg-app:  1440px;
+}
+
+/* ---- base ---------------------------------------------------------------- */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--texto-corpo);
+  font: 400 16px/1.6 'Chivo', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+}
+::selection { background: var(--latao); color: var(--ferro); }
+img, svg { display: block; }
+a { color: inherit; }
+
+/* Raio 0 em tudo, sem excecao. O chanfro do logotipo e desenho, nao border-radius. */
+button, input, select, textarea, .cartao, .chip, .botao { border-radius: 0; }
+
+/* =============================================================================
+   LOCKUP
+   =============================================================================
+   Montado em CSS, nao com o SVG do pacote — e o que o manual manda, para o
+   texto continuar selecionavel e acessivel.
+
+   Uma unica variavel controla tudo: --corpo, o font-size do NAT/VA.
+   A altura de maiuscula (que e a medida oficial da marca, e a que vale nas
+   reducoes minimas) sai dai: maiuscula = 0,667 x corpo, porque e a proporcao
+   da Bricolage.
+
+   As tres armadilhas que o manual avisa, e como este arquivo escapa delas:
+     - align-items: baseline, nunca flex-end (flex-end encosta o SVG na base da
+       caixa de linha, e as chapas descem)
+     - flex: none no SVG, senao ele encolhe
+     - altura do SVG = 0,667 x corpo, largura = altura x 46/64
+
+   Nota para quem for conferir contra o manual: a tabela de modulos diz que o
+   espaco entre LEADS, filete e nome e 0,9 M (3,15px para corpo 42). O codigo de
+   referencia do README usa 5px. Segui o codigo de referencia, que e o que o
+   proprio README manda implementar. Se o certo for a tabela, troque o 0.119
+   por 0.075 nas duas linhas de gap abaixo.
+   ============================================================================= */
+
+.marca {
+  --corpo: 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(var(--corpo) * 0.119);
+}
+
+/* LEADS e justificado por space-between sobre a largura da palavra de baixo.
+   O espacejamento e calculado pelo layout, nunca digitado. */
+.marca-leads {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: calc(var(--corpo) * 0.16);   /* 0,24 x maiuscula */
+  line-height: 1;
+  color: var(--brasa);
+  text-transform: uppercase;
+  font-variation-settings: 'wdth' 84;
+}
+
+.marca-filete { height: 1px; background: var(--divisoria); }
+
+.marca-nome {
+  display: flex;
+  align-items: baseline;   /* obrigatorio */
+  gap: 0;
+}
+.marca-nome > span {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: var(--corpo);
+  line-height: 0.8;
+  letter-spacing: -0.018em;
+  color: var(--ferro);
+  font-variation-settings: 'wdth' 84;
+  white-space: nowrap;
+}
+.marca-simbolo {
+  height: calc(var(--corpo) * 0.667);
+  width:  calc(var(--corpo) * 0.667 * 46 / 64);
+  margin: 0 calc(var(--corpo) * 0.071);
+  flex: none;   /* obrigatorio */
+}
+
+/* sobre fundo ferro */
+.marca--negativo .marca-nome > span { color: var(--papel); }
+.marca--negativo .marca-filete { background: var(--divisoria-esc); }
+
+/* "so NATIIVA": obrigatoria sempre que a maiuscula ficar abaixo de 26px.
+   E a versao mais usada no produto — header do site e da aplicacao. */
+.marca--curta .marca-leads,
+.marca--curta .marca-filete { display: none; }
+
+/* Endosso Vidalma. E TEXTO, nunca logotipo. Nenhum elemento visual da Vidalma
+   entra na marca da Natiiva — regra explicita do manual. */
+.endosso {
+  font-family: 'Chivo', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--cimento);
+  letter-spacing: 0.02em;
+}
+.endosso b { font-weight: 700; letter-spacing: 0.16em; color: #4A423A; }
+.endosso--escuro { color: #5E554C; }
+.endosso--escuro b { color: var(--cimento); }
+
+/* =============================================================================
+   TIPOGRAFIA
+   ============================================================================= */
+.titulo-pagina {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  color: var(--ferro);
+  margin: 0;
+}
+.titulo-secao { font: 700 24px/1.2 'Chivo', system-ui, sans-serif; color: var(--ferro); margin: 0; }
+.rotulo {
+  font: 600 11px/1 'Chivo', system-ui, sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cimento);
+}
+.rotulo--latao { color: var(--latao); }
+.frase {
+  font: italic 400 22px/1.2 'Instrument Serif', Georgia, serif;
+  color: var(--cimento);
+}
+.num { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 700; color: var(--ferro); }
+.num--latao { color: var(--latao); }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Linha de texto nunca passa de 72 caracteres. */
+.leitura { max-width: 66ch; }
+
+/* =============================================================================
+   BOTOES
+   ============================================================================= */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;         /* alvo de toque nunca abaixo de 44px */
+  padding: 0 22px;
+  border: 1px solid transparent;
+  font: 600 15px/1 'Chivo', system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 140ms, border-color 140ms, color 140ms;
+}
+.botao--brasa { background: var(--brasa); color: var(--papel); }
+.botao--brasa:hover { background: var(--ferrugem); }
+
+.botao--borda-escura { background: transparent; border-color: #4A403A; color: var(--papel); }
+.botao--borda-escura:hover { border-color: var(--latao); color: var(--latao); }
+
+.botao--borda-clara { background: transparent; border-color: var(--borda-campo); color: var(--ferro); }
+.botao--borda-clara:hover { border-color: var(--ferro); }
+
+.botao--invertido { background: transparent; border-color: var(--ferro); color: var(--ferro); }
+.botao--invertido:hover { background: var(--ferro); color: var(--papel); }
+
+.botao--papel { background: var(--papel); color: var(--ferro); }
+.botao--papel:hover { background: var(--latao); }
+
+.botao--largo { width: 100%; }
+.botao[disabled] { opacity: .55; cursor: default; }
+.botao:focus-visible, a:focus-visible, input:focus-visible, button:focus-visible {
+  outline: 2px solid var(--brasa);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
+   CAMPOS
+   ============================================================================= */
+.campo { display: flex; flex-direction: column; gap: 8px; }
+.campo input {
+  width: 100%;
+  padding: 15px 16px;
+  border: 1px solid var(--borda-campo);
+  background: var(--papel-elevado);
+  font: 400 16px/1.4 'Chivo', system-ui, sans-serif;
+  color: var(--ferro);
+  outline: none;
+}
+.campo input:focus { border-color: var(--brasa); }
+.campo input::placeholder { color: var(--cimento); opacity: 1; }
+
+/* =============================================================================
+   SUPERFICIES
+   ============================================================================= */
+.cartao {
+  background: var(--papel-elevado);
+  /* filete na celula, nunca fundo no contêiner com gap — o manual e explicito:
+     pista vazia de auto-fit pintaria como bloco solido */
+  box-shadow: 0 0 0 1px var(--divisoria);
+}
+.faixa-ferro { background: var(--ferro); color: var(--texto-escuro); }
+.faixa-ferrugem { background: var(--ferrugem); color: #F5DFD2; }
+
+.aviso {
+  border-left: 3px solid var(--latao);
+  padding: 16px 20px;
+  background: var(--papel-elevado);
+  font: 400 15px/1.55 'Chivo', system-ui, sans-serif;
+  color: var(--texto-corpo);
+}
+
+/* =============================================================================
+   CHIPS  (filtros da aplicacao)
+   ============================================================================= */
+.chip {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  background: var(--papel-elevado);
+  color: var(--texto-corpo);
+  box-shadow: inset 0 0 0 1px var(--borda-campo);
+  font: 400 13px/1 'Chivo', system-ui, sans-serif;
+  cursor: pointer;
+  transition: background-color 140ms, color 140ms;
+}
+.chip[aria-pressed="true"] { background: var(--ferro); color: var(--papel); box-shadow: none; }
+
+/* =============================================================================
+   TABELA DE LEADS
+   ============================================================================= */
+.tabela { width: 100%; background: var(--papel-elevado); box-shadow: 0 0 0 1px var(--divisoria); }
+.tabela-cab {
+  display: flex; gap: 16px; padding: 12px 20px;
+  background: var(--papel-fundo);
+  border-bottom: 1px solid var(--divisoria);
+}
+.linha {
+  display: flex; gap: 16px; width: 100%; padding: 14px 20px;
+  background: transparent; border: 0; border-bottom: 1px solid var(--divisoria-fraca);
+  text-align: left; cursor: pointer; align-items: center;
+  font: 400 14px/1.4 'Chivo', system-ui, sans-serif; color: var(--texto-corpo);
+}
+.linha:hover { background: var(--papel); }
+.col-empresa { flex: 1; min-width: 0; }
+.col-contato { width: 150px; flex: none; }
+.col-score   { width: 108px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.corta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* A barra de score usa latao puro de proposito: e preenchimento grafico, nunca
+   texto. Latao sobre papel da 2,1:1 de contraste e nao serve para ler. */
+.score-barra { width: 44px; height: 5px; background: var(--divisoria-fraca); flex: none; }
+.score-barra i { display: block; height: 100%; background: var(--latao); }
+.score-num { font: 400 19px/1 'Chivo', system-ui, sans-serif; color: var(--latao-escuro); font-variant-numeric: tabular-nums; }
+
+/* painel do roteiro de abordagem */
+.roteiro { background: var(--ferro); padding: 24px 20px; display: flex; flex-direction: column; gap: 20px; }
+.roteiro-campo { display: flex; flex-direction: column; gap: 6px; }
+.roteiro-campo p { margin: 0; font: 400 15px/1.55 'Chivo', system-ui, sans-serif; color: var(--texto-escuro); }
+.roteiro-frase { font: italic 400 20px/1.35 'Instrument Serif', Georgia, serif; color: var(--papel); margin: 0; }
+
+/* =============================================================================
+   LAYOUT
+   ============================================================================= */
+.env-site { width: 100%; max-width: var(--larg-site); margin: 0 auto; padding: 0 40px; }
+.env-app  { width: 100%; max-width: var(--larg-app);  margin: 0 auto; padding: 0 32px; }
+.secao { padding: 88px 0; }
+
+.topo {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--ferro);
+}
+.topo-env {
+  min-height: 76px; display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap; row-gap: 12px; padding-top: 12px; padding-bottom: 12px;
+}
+.nav-link {
+  font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--nav-inativo);
+  text-decoration: none; min-height: 44px; display: inline-flex; align-items: center;
+  transition: color 140ms;
+}
+.nav-link:hover { color: var(--papel); }
+.nav-divisor { width: 1px; align-self: stretch; background: #3A322B; margin: 0 6px; }
+
+@media (max-width: 700px) {
+  .env-site { padding: 0 20px; }
+  .env-app  { padding: 0 20px; }
+  .secao { padding: 56px 0; }
+  .titulo-pagina { font-size: 34px; }
+}
