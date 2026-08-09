@@ -70,7 +70,7 @@
     </a>
     <nav style="display:flex;gap:24px;flex-wrap:wrap">
       <a class="aba" href="app.html">Filtrar base</a>
-      <button class="aba" id="aba-listas">Minhas listas</button>
+      <a class="aba" href="bases.html">Minhas bases</a>
       <button class="aba" id="aba-downloads">Downloads</button>
       <button class="aba" aria-current="page">Acessos</button>
     </nav>
@@ -119,6 +119,7 @@
           <span class="rotulo" style="width:120px;flex:none">Papel</span>
           <span class="rotulo" style="width:150px;flex:none">Entra</span>
           <span class="rotulo" style="width:180px;flex:none">Vê contato</span>
+          <span class="rotulo" style="width:90px;flex:none">Acesso</span>
         </div>
         <div id="pessoas"></div>
       </div>
@@ -134,36 +135,69 @@
       </p>
     </div>
 
-    <!-- liberar alguem novo ------------------------------------------- -->
+    <!-- criar usuario --------------------------------------------------- -->
     <div style="display:flex;flex-direction:column;gap:16px">
-      <span class="rotulo">Liberar acesso</span>
+      <span class="rotulo">Criar usuário</span>
       <div class="novo">
-        <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo)">
-          A pessoa precisa existir no login antes. Se ainda não existir, crie
-          em Authentication → Users no Supabase e volte aqui.
+        <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo);max-width:66ch">
+          Cria o login e libera o acesso de uma vez. A pessoa entra com o e-mail
+          e a senha que você definir aqui — e pode trocar depois, sozinha, pelo
+          "Esqueci a senha".
         </p>
+
         <div class="novo-linha">
-          <div class="campo">
-            <label class="rotulo" for="novo-email">E-mail</label>
-            <input class="campo-txt" id="novo-email" type="email" placeholder="pessoa@empresa.com.br">
-          </div>
           <div class="campo">
             <label class="rotulo" for="novo-nome">Nome</label>
             <input class="campo-txt" id="novo-nome" type="text" placeholder="Como aparece no painel">
           </div>
           <div class="campo">
+            <label class="rotulo" for="novo-email">E-mail</label>
+            <input class="campo-txt" id="novo-email" type="email" placeholder="pessoa@empresa.com.br">
+          </div>
+        </div>
+
+        <div class="novo-linha">
+          <div class="campo">
+            <label class="rotulo" for="nova-senha">Senha inicial</label>
+            <div style="display:flex;gap:8px">
+              <input class="campo-txt" id="nova-senha" type="text" placeholder="Ao menos 8 caracteres">
+              <button type="button" class="botao botao--borda-clara" id="btn-gerar"
+                      style="flex:none;padding:0 14px;min-height:0">Gerar</button>
+            </div>
+          </div>
+          <div class="campo">
             <label class="rotulo" for="novo-papel">Papel</label>
             <select class="campo-sel" id="novo-papel">
-              <option value="CLIENTE">Cliente — vê a base, contato conforme liberação</option>
-              <option value="COMERCIAL">Comercial — uso interno, vê contato</option>
+              <option value="CLIENTE">Cliente — usa a base</option>
+              <option value="COMERCIAL">Comercial — uso interno da casa</option>
               <option value="ADMIN">Admin — administra acessos</option>
               <option value="DONO">Dono — tudo</option>
             </select>
           </div>
+          <div class="campo">
+            <span class="rotulo">Vê contato</span>
+            <label class="chave" style="min-height:44px">
+              <input type="checkbox" id="novo-liberado">
+              <i></i><span>Não</span>
+            </label>
+          </div>
         </div>
+
         <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-          <button class="botao botao--brasa" id="btn-liberar">Liberar acesso</button>
-          <span id="msg-novo" style="font:400 14px 'Chivo';color:var(--cimento)"></span>
+          <button class="botao botao--brasa" id="btn-liberar">Criar e liberar acesso</button>
+          <span id="msg-novo" style="font:400 14px/1.5 'Chivo';color:var(--cimento)"></span>
+        </div>
+
+        <div id="senha-pronta" style="display:none;border-left:3px solid var(--latao);padding:14px 18px;background:var(--papel-fundo);flex-direction:column;gap:8px">
+          <span style="font:600 14px 'Chivo';color:var(--ferro)">Guarde e mande para a pessoa</span>
+          <div style="font:400 14px/1.7 ui-monospace,Menlo,Consolas,monospace;color:var(--texto-corpo)">
+            <div>vidalma.com.br/natiiva/login</div>
+            <div id="pronta-email"></div>
+            <div id="pronta-senha"></div>
+          </div>
+          <span style="font:400 13px/1.5 'Chivo';color:var(--cimento)">
+            Esta senha não aparece de novo depois que você sair desta tela.
+          </span>
         </div>
       </div>
     </div>

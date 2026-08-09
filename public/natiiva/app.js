@@ -558,6 +558,27 @@
       linha.appendChild(papel);
       linha.appendChild(chave(p, 'ativo', 'Entra', 150));
       linha.appendChild(chave(p, 'liberado', 'Vê contato', 180));
+
+      // Remover e diferente de desligar: desligar bloqueia na hora e guarda o
+      // historico; remover apaga a linha. Na duvida, desligue.
+      var fim = document.createElement('div');
+      fim.style.cssText = 'width:90px;flex:none';
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.style.cssText = "background:none;border:0;padding:0;cursor:pointer;"
+                       + "font:400 13px 'Chivo';color:var(--brasa);text-decoration:underline";
+      rm.textContent = 'Remover';
+      rm.addEventListener('click', function () {
+        if (!confirm('Remover o acesso de ' + (p.nome || p.email) + '?\n\n'
+                   + 'O login continua existindo — so o acesso a Natiiva sai.\n'
+                   + 'Se for temporario, desligue "Entra" em vez de remover.')) return;
+        sb.rpc('remover_membro', { p_email: p.email }).then(function (r) {
+          if (r.error) { alert('Nao consegui remover: ' + r.error.message); return; }
+          listar();
+        });
+      });
+      fim.appendChild(rm);
+      linha.appendChild(fim);
       return linha;
     }
 
@@ -614,27 +635,94 @@
         });
     }
 
+    // A chavinha do formulario de criar
+    (function () {
+      var c = $('#novo-liberado');
+      c.addEventListener('change', function () {
+        c.parentNode.querySelector('span').textContent = c.checked ? 'Sim' : 'Não';
+      });
+    })();
+
+    function senhaSorteada() {
+      // Sem 0/O/1/l/I: senha e ditada por telefone e lida em papel.
+      var alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+      var n = new Uint32Array(12);
+      (window.crypto || window.msCrypto).getRandomValues(n);
+      return Array.prototype.map.call(n, function (x) {
+        return alfabeto[x % alfabeto.length];
+      }).join('');
+    }
+
+    $('#btn-gerar').addEventListener('click', function () {
+      $('#nova-senha').value = senhaSorteada();
+    });
+
+    // Criar o login e liberar o acesso, numa acao so.
+    //
+    // O login e criado pelo cadastro publico do Supabase, e nao pela API de
+    // administracao: esta ultima exige a chave service_role, que abre o banco
+    // inteiro e nunca pode chegar ao navegador.
+    //
+    // O cadastro usa uma segunda conexao, com guarda propria e sem gravar
+    // sessao. Sem isso, criar um usuario derrubaria a sua sessao e voce sairia
+    // do sistema a cada cadastro — o Supabase entra automaticamente com quem
+    // acabou de se cadastrar.
+    var sbCadastro = window.supabase.createClient(cfg.url, cfg.chave, {
+      auth: { storageKey: 'natiiva-cadastro', persistSession: false,
+              autoRefreshToken: false, detectSessionInUrl: false }
+    });
+
     $('#btn-liberar').addEventListener('click', function () {
       var email = $('#novo-email').value.trim();
       var nome = $('#novo-nome').value.trim();
+      var senha = $('#nova-senha').value;
       var papel = $('#novo-papel').value;
+      var liberado = $('#novo-liberado').checked;
       var msg = $('#msg-novo');
+      var botao = $('#btn-liberar');
+
       if (!email) { msg.textContent = 'Falta o e-mail.'; return; }
-      msg.textContent = 'Procurando o login...';
-      // A funcao no banco resolve o e-mail para o usuario do auth e cadastra.
-      // Feita assim porque auth.users nao e legivel pelo navegador — e nem
-      // deveria ser.
-      sb.rpc('liberar_membro', { p_email: email, p_nome: nome, p_papel: papel })
+      if (!senha || senha.length < 8) {
+        msg.textContent = 'A senha precisa de ao menos 8 caracteres. Use o Gerar.';
+        return;
+      }
+
+      botao.disabled = true; botao.textContent = 'Criando...';
+      msg.textContent = 'Criando o login...';
+      $('#senha-pronta').style.display = 'none';
+
+      sbCadastro.auth.signUp({ email: email, password: senha })
         .then(function (r) {
+          // "ja cadastrado" nao e erro aqui: e o caso de quem ja tem login da
+          // area do cliente da Vidalma e so precisa do acesso a Natiiva.
+          var m = (r.error && r.error.message || '').toLowerCase();
+          if (r.error && !/already|registered|exists/.test(m)) {
+            throw new Error(r.error.message);
+          }
+          msg.textContent = 'Liberando o acesso...';
+          return sb.rpc('liberar_membro', {
+            p_email: email, p_nome: nome, p_papel: papel, p_liberado: liberado
+          });
+        })
+        .then(function (r) {
+          botao.disabled = false; botao.textContent = 'Criar e liberar acesso';
           if (r.error) { msg.textContent = 'Não consegui: ' + r.error.message; return; }
           if (r.data === false) {
-            msg.textContent = 'Esse e-mail ainda não existe no login. '
-                            + 'Crie em Authentication → Users e volte aqui.';
+            msg.textContent = 'O login foi criado, mas o Supabase ainda não o '
+                            + 'confirmou. Espere alguns segundos e clique de novo.';
             return;
           }
-          msg.textContent = 'Liberado.';
+          msg.textContent = '';
+          texto($('#pronta-email'), email);
+          texto($('#pronta-senha'), senha);
+          $('#senha-pronta').style.display = 'flex';
           $('#novo-email').value = ''; $('#novo-nome').value = '';
+          $('#nova-senha').value = '';
           listar();
+        })
+        .catch(function (e) {
+          botao.disabled = false; botao.textContent = 'Criar e liberar acesso';
+          msg.textContent = 'Não consegui: ' + (e && e.message || e);
         });
     });
 
