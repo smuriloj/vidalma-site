@@ -219,6 +219,297 @@
   }
 
   /* =========================================================================
+     AJUDA COMPARTILHADA ENTRE AS TELAS DE BASE
+     ========================================================================= */
+  function numero(n) {
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  function escapar(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function param(nome) {
+    var m = new RegExp('[?&]' + nome + '=([^&]*)').exec(location.search);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  function pintarRetrato(caixa, linhas) {
+    if (!caixa) return;
+    caixa.innerHTML = '';
+    if (!linhas || !linhas.length) {
+      var p = document.createElement('p');
+      p.style.cssText = "font:400 14px 'Chivo';color:var(--cimento);margin:0";
+      p.textContent = 'Nenhuma empresa atendida ainda.';
+      caixa.appendChild(p);
+      return;
+    }
+    linhas.sort(function (a, b) { return b.quantidade - a.quantidade; });
+    linhas.forEach(function (r) {
+      var d = document.createElement('div');
+      d.className = 'resultado' + (r.encerra ? ' fecha' : '');
+      d.innerHTML = '<b>' + r.quantidade + '</b><span>' + escapar(r.descricao || r.codigo) + '</span>';
+      caixa.appendChild(d);
+    });
+  }
+
+  /* =========================================================================
+     MINHAS BASES
+     ========================================================================= */
+  if (tela === 'bases') {
+    $('#sair').addEventListener('click', function () {
+      sb.auth.signOut().then(function () { ir('login.html'); });
+    });
+    var abaDown = $('#aba-downloads');
+    if (abaDown) abaDown.addEventListener('click', function () {
+      alert('Ainda não construído.');
+    });
+
+    function pintarBase(b, resultados) {
+      var art = document.createElement('article');
+      art.className = 'base';
+
+      var feito = Number(b.atendidos || 0);
+      var total = Number(b.total || 0);
+      var pct = total ? Math.round(feito * 100 / total) : 0;
+
+      var topo = document.createElement('div');
+      topo.className = 'base-topo';
+      topo.innerHTML =
+        '<div style="min-width:0"><h2>' + escapar(b.nome) + '</h2>'
+        + '<p class="base-sub">' + escapar(b.descricao || 'Recorte sem descrição')
+        + (b.reservou ? ' · <strong style="font-weight:600;color:var(--brasa)">reservada</strong>' : '')
+        + '</p></div>';
+      var acao = document.createElement('div');
+      acao.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap';
+      var btn = document.createElement('a');
+      btn.className = feito >= total && total > 0 ? 'botao botao--invertido' : 'botao botao--brasa';
+      btn.href = 'atender.html?base=' + b.id;
+      btn.textContent = feito >= total && total > 0 ? 'Ver resultado' : 'Atender base';
+      acao.appendChild(btn);
+      topo.appendChild(acao);
+      art.appendChild(topo);
+
+      var barra = document.createElement('div');
+      barra.className = 'barra';
+      var i = document.createElement('i');
+      i.style.width = pct + '%';
+      if (pct >= 100) i.className = 'fim';
+      barra.appendChild(i);
+      art.appendChild(barra);
+
+      var nums = document.createElement('div');
+      nums.className = 'numeros-base';
+      nums.innerHTML =
+        '<div><b>' + numero(total) + '</b><span>empresas</span></div>'
+        + '<div><b>' + numero(feito) + '</b><span>atendidas</span></div>'
+        + '<div><b class="latao">' + pct + '%</b><span>do caminho</span></div>';
+      art.appendChild(nums);
+
+      var retrato = document.createElement('div');
+      retrato.className = 'retrato';
+      pintarRetrato(retrato, resultados);
+      art.appendChild(retrato);
+      return art;
+    }
+
+    sb.auth.getSession().then(function (r) {
+      if (!(r.data && r.data.session)) { ir('login.html'); return; }
+      return conferirMembro().then(function (res) {
+        $('#carregando').style.display = 'none';
+        if (res.estado !== 'ok') { ir('app.html'); return; }
+        texto($('#conta'), res.membro.nome || '');
+        texto($('#sair'), (res.membro.nome || '?').trim().charAt(0).toUpperCase());
+        if (['DONO', 'ADMIN'].indexOf(res.membro.papel) >= 0) {
+          $('#aba-acessos').style.display = 'inline-flex';
+        }
+        $('#conteudo').style.display = 'flex';
+
+        return Promise.all([
+          sb.from('bases_resumo').select('*').order('criada_em', { ascending: false }),
+          sb.from('base_resultado').select('*')
+        ]).then(function (rs) {
+          var bases = (rs[0].data || []);
+          var resultados = (rs[1].data || []);
+          if (!bases.length) { $('#vazio').style.display = 'flex'; return; }
+          var caixa = $('#lista');
+          bases.forEach(function (b) {
+            caixa.appendChild(pintarBase(b, resultados.filter(function (x) {
+              return x.base_id === b.id;
+            })));
+          });
+        });
+      });
+    });
+    return;
+  }
+
+  /* =========================================================================
+     ATENDER A BASE
+     ========================================================================= */
+  if (tela === 'atender') {
+    var idBase = Number(param('base'));
+    var atual = null, codigoEscolhido = null, codigos = [];
+
+    $('#sair').addEventListener('click', function () {
+      sb.auth.signOut().then(function () { ir('login.html'); });
+    });
+
+    function dinheiroBR(v) {
+      if (v == null) return '—';
+      return 'R$ ' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    }
+
+    function pintarCodigos() {
+      var caixa = $('#codigos');
+      caixa.innerHTML = '';
+      codigos.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip-tab';
+        b.setAttribute('aria-pressed', 'false');
+        b.innerHTML = escapar(c.descricao)
+          + (c.encerra ? '<small>encerra a empresa</small>' : '');
+        b.addEventListener('click', function () {
+          codigoEscolhido = c.codigo;
+          $$('.chip-tab', caixa).forEach(function (o) {
+            o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+          });
+          $('#btn-salvar').disabled = false;
+        });
+        caixa.appendChild(b);
+      });
+    }
+
+    function progresso() {
+      return sb.from('bases_resumo').select('*').eq('id', idBase).then(function (r) {
+        var b = (r.data || [])[0];
+        if (!b) return null;
+        texto($('#base-nome'), b.nome);
+        texto($('#base-desc'), b.descricao || '');
+        var feito = Number(b.atendidos || 0), total = Number(b.total || 0);
+        texto($('#prog-num'), numero(feito) + ' de ' + numero(total));
+        $('#prog-barra').style.width = (total ? Math.round(feito * 100 / total) : 0) + '%';
+        return b;
+      });
+    }
+
+    function retrato() {
+      return sb.from('base_resultado').select('*').eq('base_id', idBase)
+        .then(function (r) {
+          pintarRetrato($('#retrato'), r.data || []);
+          pintarRetrato($('#retrato-fim'), r.data || []);
+        });
+    }
+
+    function proxima() {
+      $('#msg').textContent = '';
+      return sb.from('base_fila').select('*').eq('base_id', idBase)
+        .is('atendido_em', null).order('ordem').limit(1)
+        .then(function (r) {
+          if (r.error) { $('#msg').textContent = 'Não consegui ler a base: ' + r.error.message; return; }
+          var l = (r.data || [])[0];
+          $('#carregando').style.display = 'none';
+          if (!l) {
+            atual = null;
+            $('#atender').style.display = 'none';
+            $('#acabou').style.display = 'flex';
+            return;
+          }
+          atual = l;
+          $('#acabou').style.display = 'none';
+          $('#atender').style.display = 'flex';
+
+          texto($('#posicao'), 'Empresa ' + l.ordem);
+          texto($('#razao'), l.razao_social || '—');
+          texto($('#onde'), [l.nome_fantasia, (l.cidade || '') + '/' + (l.uf || ''), l.bairro]
+                            .filter(Boolean).join(' · '));
+          texto($('#score'), l.score);
+          $('#score-barra').style.width = Math.max(0, Math.min(100, l.score)) + '%';
+
+          var tel = $('#tel');
+          if (l.telefone_1) {
+            tel.textContent = l.telefone_1;
+            // No celular o telefone vira toque para discar. No computador nao
+            // faz nada de ruim.
+            tel.href = 'tel:' + l.telefone_1.replace(/\D/g, '');
+          } else {
+            tel.textContent = 'Sem telefone';
+            tel.removeAttribute('href');
+          }
+          texto($('#tel2'), l.telefone_2 ? 'ou ' + l.telefone_2 : '');
+          texto($('#email'), l.email || '—');
+          texto($('#cnpj'), l.cnpj);
+          texto($('#endereco'), l.endereco || '—');
+          texto($('#porte'), l.porte || '—');
+          texto($('#capital'), dinheiroBR(l.capital_social));
+          texto($('#quem'), l.quem_procurar || '—');
+          texto($('#dor'), l.dor_provavel || '—');
+          texto($('#frase'), l.frase_abertura || '—');
+          texto($('#setor'), l.setor ? 'Setor traduzido: ' + l.setor : '');
+
+          codigoEscolhido = null;
+          $('#contato').value = '';
+          $('#obs').value = '';
+          $('#btn-salvar').disabled = true;
+          $$('.chip-tab').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
+          window.scrollTo(0, 0);
+        });
+    }
+
+    $('#btn-salvar').addEventListener('click', function () {
+      if (!atual || !codigoEscolhido) return;
+      var botao = $('#btn-salvar');
+      botao.disabled = true;
+      botao.textContent = 'Salvando...';
+      sb.rpc('tabular', {
+        p_base: idBase, p_cnpj: atual.cnpj, p_codigo: codigoEscolhido,
+        p_contato: $('#contato').value, p_observacao: $('#obs').value
+      }).then(function (r) {
+        botao.textContent = 'Salvar e ir para a próxima';
+        if (r.error) {
+          botao.disabled = false;
+          $('#msg').textContent = 'Não consegui salvar: ' + r.error.message;
+          return;
+        }
+        return Promise.all([proxima(), progresso(), retrato()]);
+      });
+    });
+
+    // Pular manda para o fim da fila, nao tabula. Empresa que nao atendeu
+    // agora pode atender depois, e nao vira estatistica de nada.
+    $('#btn-pular').addEventListener('click', function () {
+      if (!atual) return;
+      sb.from('base_leads')
+        .update({ ordem: 999999 + (atual.ordem || 0) })
+        .eq('base_id', idBase).eq('lead_cnpj', atual.cnpj)
+        .then(function (r) {
+          if (r.error) { $('#msg').textContent = 'Não consegui pular: ' + r.error.message; return; }
+          return proxima();
+        });
+    });
+
+    sb.auth.getSession().then(function (r) {
+      if (!(r.data && r.data.session)) { ir('login.html'); return; }
+      if (!idBase) { ir('bases.html'); return; }
+      return conferirMembro().then(function (res) {
+        if (res.estado !== 'ok') { ir('app.html'); return; }
+        texto($('#conta'), res.membro.nome || '');
+        texto($('#sair'), (res.membro.nome || '?').trim().charAt(0).toUpperCase());
+        if (['DONO', 'ADMIN'].indexOf(res.membro.papel) >= 0) {
+          $('#aba-acessos').style.display = 'inline-flex';
+        }
+        return sb.from('tabulacao_codigos').select('*').order('codigo')
+          .then(function (rc) {
+            codigos = rc.data || [];
+            pintarCodigos();
+            return Promise.all([proxima(), progresso(), retrato()]);
+          });
+      });
+    });
+    return;
+  }
+
+  /* =========================================================================
      GESTAO DE ACESSOS
      =========================================================================
      Tudo aqui e protegido no banco antes de ser protegido na tela: a RLS de
@@ -524,10 +815,6 @@
     return q;
   }
 
-  function numero(n) {
-    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  }
-
   function montarLinha(l) {
     var envolucro = document.createElement('div');
 
@@ -595,12 +882,6 @@
     return '<div class="roteiro-campo"><span class="rotulo rotulo--latao">' + rotulo +
            '</span><p>' + escapar(valor || '—') + '</p></div>';
   }
-  function escapar(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  }
-
   var linhas = [];
 
   function desenhar() {
@@ -755,6 +1036,43 @@
         texto($('#idade-valor'), estado.idadeMin + (estado.idadeMin === 1 ? ' ano' : ' anos'));
         buscarLogo();
       });
+
+    // Salvar recorte = criar uma base. O filtro vai junto, mas o que manda e a
+      // lista congelada: quem esta atendendo nao pode ver o chao se mexer.
+      $('#btn-criar-base').addEventListener('click', function () {
+        var nome = prompt('Nome desta base\n\nExemplo: "Metalurgia SP - semana 1"',
+                          descreverRecorte());
+        if (!nome) return;
+        var quantos = parseInt(prompt('Quantas empresas entram nesta base?\n\n'
+                      + 'As de maior score entram primeiro. Uma base e uma lista de '
+                      + 'trabalho — 60 por vendedor por semana e o tamanho sugerido.',
+                      '60') || '0', 10);
+        if (!quantos || quantos < 1) return;
+        var reservar = confirm('Reservar estas empresas?\n\nOK = elas somem da vitrine '
+                      + 'e das bases dos outros clientes.\nCancelar = ficam disponiveis '
+                      + 'para todo mundo.');
+
+        var b = $('#btn-criar-base');
+        b.disabled = true; b.textContent = 'Criando...';
+        sb.rpc('criar_base', {
+          p_nome: nome,
+          p_filtro: {
+            prefixos: prefixosAtuais(), uf: estado.uf === 'Todos' ? null : estado.uf,
+            cidade: estado.cidade || null, porte: porteAtual(),
+            unidade: valorDe(UNIDADES, estado.unidade), faixa: valorDe(FAIXAS, estado.faixa),
+            score: estado.minScore, capital: CAPITAIS[estado.capitalIdx],
+            idade: estado.idadeMin, contato: valorDe(CONTATOS, estado.contato),
+            descricao: descreverRecorte()
+          },
+          p_limite: quantos,
+          p_reservar: !!reservar
+        }).then(function (r) {
+          b.disabled = false; b.textContent = 'Salvar recorte';
+          if (r.error) { alert('Nao consegui criar: ' + r.error.message); return; }
+          location.href = 'atender.html?base=' + r.data;
+        });
+      });
+
 
       $('#limpar').addEventListener('click', function () {
         estado.setor = 'Todos'; estado.uf = 'Todos'; estado.cidade = '';
