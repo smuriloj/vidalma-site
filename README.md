@@ -14,7 +14,24 @@ public/             tudo que vai para o ar
   favicon.svg       ícone da aba
   apple-touch-icon.png
   og-image.png      imagem que aparece ao colar o link no WhatsApp
+  areadocliente/    área do cliente (login + painel)
+  natiiva/          Natiiva — leads industriais B2B (login + painel)
 ```
+
+## natiiva/
+
+Fica em `vidalma.com.br/natiiva`. Mesmo padrão de telas da área do cliente e
+mesmo projeto Supabase — um login serve aos dois.
+
+O que separa os dois é a tabela `natiiva.membros`. Quem é cliente da Vidalma
+tem login válido e **não** vê nenhum lead, porque a RLS do banco recusa. A
+tela de login não é o que protege: ela roda no navegador do visitante e pode
+ser pulada digitando `painel.html` na barra de endereço. Quem protege é a RLS.
+
+O schema, as políticas e os testes vivem no repositório
+`smuriloj/vitrine-leads`, na pasta `sql/`. Enquanto esse SQL não for executado
+no Supabase, o painel deixa entrar e mostra um aviso dizendo exatamente isso —
+em vez de um erro de senha que mandaria você procurar no lugar errado.
 
 ## Como publicar
 

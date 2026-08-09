@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · Natiiva</title>
+<meta name="theme-color" content="#101418">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="painel.css">
+<style>
+@font-face { font-family: 'Chivo'; font-weight: 100 900; font-display: swap; src: url('fontes/Chivo-variable-latin.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 100 900; font-display: swap; src: url('fontes/DMSans-variable-latin.woff2') format('woff2'); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #E9EBEA; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+a { color: #E9EBEA; }
+input { font: 400 16px 'DM Sans', system-ui, sans-serif; }
+input:focus { outline: none; border-color: #101418; box-shadow: 0 0 0 3px #F2C230; }
+button { font-family: 'Chivo', system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<div data-tela="erro" class="auth">
+<svg class="auth-dagua" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M16 16H62V34H16Z" fill="#454C55"></path><path d="M66 16H84V62H66Z" fill="#454C55"></path><path d="M38 66H84V84H38Z" fill="#454C55"></path><path d="M16 38H30L34 43V84H16Z" fill="#454C55"></path></svg>
+<div class="auth-coluna">
+<svg viewBox="0 0 300 84" width="240" style="height:auto;display:block" role="img" aria-label="Natiiva — leads industriais B2B"><g transform="translate(0 6) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="46" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">natiiva</text><text x="91" y="68" font-family="DM Sans" font-size="10" font-weight="500" letter-spacing="0.9" fill="#E9EBEA">LEADS INDUSTRIAIS B2B</text></svg>
+<form id="form-entrar" style="display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;gap:16px">
+<span style="width:4px;background:#F2C230;flex:none"></span>
+<p role="alert" style="font:400 16px/1.55 'DM Sans';color:#E9EBEA;margin:0">Esse e-mail não tem acesso à Natiiva. Pode ser que ele não esteja cadastrado, ou que o acesso ainda não tenha sido liberado. Fale com a gente que a gente resolve.</p>
+</div>
+<button type="submit" style="height:48px;background:#F2C230;border:0;border-radius:3px;width:100%;font:700 16px 'Chivo';color:#101418;cursor:pointer">Tentar de novo</button>
+</form>
+</div>
+</div>
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>

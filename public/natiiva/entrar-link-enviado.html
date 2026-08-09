@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link enviado · Natiiva</title>
+<meta name="theme-color" content="#101418">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="painel.css">
+<style>
+@font-face { font-family: 'Chivo'; font-weight: 100 900; font-display: swap; src: url('fontes/Chivo-variable-latin.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 100 900; font-display: swap; src: url('fontes/DMSans-variable-latin.woff2') format('woff2'); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #E9EBEA; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+a { color: #E9EBEA; }
+button { font-family: 'Chivo', system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<div data-tela="link-enviado" class="auth">
+<svg class="auth-dagua" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M16 16H62V34H16Z" fill="#454C55"></path><path d="M66 16H84V62H66Z" fill="#454C55"></path><path d="M38 66H84V84H38Z" fill="#454C55"></path><path d="M16 38H30L34 43V84H16Z" fill="#454C55"></path></svg>
+<div class="auth-coluna">
+<svg viewBox="0 0 300 84" width="240" style="height:auto;display:block" role="img" aria-label="Natiiva — leads industriais B2B"><g transform="translate(0 6) scale(0.72)"><path d="M16 16H62V34H16Z" fill="#E9EBEA"></path><path d="M66 16H84V62H66Z" fill="#E9EBEA"></path><path d="M38 66H84V84H38Z" fill="#E9EBEA"></path><path d="M16 38H30L34 43V84H16Z" fill="#E9EBEA"></path></g><text x="90" y="46" font-family="Chivo" font-size="46" font-weight="700" letter-spacing="-0.4" fill="#E9EBEA">natiiva</text><text x="91" y="68" font-family="DM Sans" font-size="10" font-weight="500" letter-spacing="0.9" fill="#E9EBEA">LEADS INDUSTRIAIS B2B</text></svg>
+
+<div style="display:flex;flex-direction:column;gap:24px">
+<span style="font:800 28px/1.1 'Chivo';letter-spacing:-.02em;color:#E9EBEA">Link enviado.</span>
+<div style="display:flex;gap:16px">
+<span style="width:4px;background:#F2C230;flex:none"></span>
+<p style="font:400 16px/1.55 'DM Sans';color:#E9EBEA;margin:0">Abri o caminho para <strong id="email-enviado" style="font-weight:500">o seu e-mail</strong>. Clica no link de lá e você entra direto, sem senha.</p>
+</div>
+<p style="font:400 15px/1.55 'DM Sans';color:#E9EBEA;margin:0;opacity:.75">Não chegou em um minuto? Olha o spam. O link vale por uma hora e só funciona uma vez.</p>
+<a href="entrar.html" style="min-height:44px;display:flex;align-items:center;font:500 15px 'DM Sans';color:#E9EBEA">Voltar para entrar</a>
+</div>
+</div>
+</div>
+<script defer src="supabase.js"></script>
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+</body>
+</html>
