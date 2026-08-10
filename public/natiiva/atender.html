@@ -10,10 +10,13 @@
 <link rel="stylesheet" href="natiiva.css">
 <style>
 .app-topo { position: sticky; top: 0; z-index: 20; background: var(--ferro); }
-.app-topo-env { min-height: 64px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; row-gap: 8px; }
+/* Encosta na borda, como na tela de filtro. */
+.app-topo-env { min-height: 56px; display: flex; align-items: center; gap: 32px;
+  flex-wrap: wrap; row-gap: 8px; padding: 0 28px; }
 .aba { font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--nav-inativo); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; border-bottom: 2px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer; }
 .aba[aria-current="page"] { color: var(--papel); border-bottom-color: var(--brasa); }
-.avatar { width: 34px; height: 34px; background: var(--brasa); color: var(--papel); display: flex; align-items: center; justify-content: center; font: 600 14px 'Chivo'; flex: none; }
+.avatar { width: 30px; height: 30px; background: var(--brasa); color: var(--papel); display: flex; align-items: center; justify-content: center; font: 700 11px 'Chivo'; flex: none; border: 0; cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
 
 .faixa-progresso { background: var(--papel-fundo); border-bottom: 1px solid var(--divisoria); }
 .faixa-env { padding: 16px 0; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
@@ -57,12 +60,99 @@
 .resultado.fecha span { color: var(--texto-escuro); }
 
 @media (max-width: 700px) { .empresa-nome { font-size: 24px; } .telefone a { font-size: 27px; } }
+
+/* =============================================================================
+   TELA INTEIRA EM FERRO
+   =============================================================================
+   Decisao tomada com o Sergio: quem esta ligando fica nesta tela por horas
+   seguidas, e papel branco a noite inteira cansa a vista. Ferro cansa menos.
+
+   E ha um motivo de leitura tambem: aqui nao se varre lista, se le uma empresa
+   por vez. Fundo escuro com um dado por vez e painel de instrumento; fundo
+   claro com um dado por vez e folha em branco.
+   ============================================================================= */
+body { background: var(--ferro); color: var(--texto-escuro); }
+
+/* A faixa de cima entra no ferro tambem: papel claro em cima de tela escura
+   virava uma tarja atravessada no meio do caminho. */
+.faixa-progresso { background: var(--ferro); border-bottom: 0; }
+.faixa-env { padding: 18px 0 14px; }
+
+/* O cartao da empresa deixa de ser cartao. Numa tela onde se le uma empresa
+   por vez, a moldura nao separa nada de nada — so engorda. */
+.cartao-empresa, .cartao {
+  background: transparent; box-shadow: none; padding: 0;
+}
+.cartao-empresa { gap: 20px; }
+.empresa { gap: 26px; }
+
+.empresa-nome, .titulo-pagina { color: var(--papel); }
+.empresa-onde { color: var(--nav-inativo); }
+.telefone { border-color: var(--divisoria-esc); }
+.telefone a { color: var(--papel); }
+.telefone a:hover { color: var(--latao); }
+.linha-dado b { color: var(--papel); }
+.score-barra { background: var(--divisoria-esc); }
+.score-num { color: var(--latao); }
+
+/* O roteiro deixa de ser um bloco escuro dentro de tela clara — a tela ja e
+   escura. Ele passa a se distinguir por filete e por latao no rotulo. */
+.roteiro {
+  background: transparent; padding: 24px 0 0;
+  border-top: 1px solid var(--divisoria-esc);
+}
+
+/* A coluna da direita ganha o filete que o cartao dava. */
+.tabular > .cartao {
+  border-left: 1px solid var(--divisoria-esc); padding-left: 26px;
+}
+
+.chip-tab {
+  background: transparent; color: var(--texto-escuro);
+  box-shadow: inset 0 0 0 1px var(--divisoria-esc);
+}
+.chip-tab:hover { box-shadow: inset 0 0 0 1px var(--cimento); }
+.chip-tab[aria-pressed="true"] { background: var(--brasa); color: var(--papel); box-shadow: none; }
+.chip-tab[aria-pressed="true"] small { color: var(--papel); opacity: .75; }
+.chip-tab small { color: var(--cimento); }
+
+/* ".campo .campo-txt" e nao ".campo-txt": a natiiva.css tem ".campo input",
+   que e mais especifico e ganharia — o campo voltaria a ser branco. */
+.campo .campo-txt, .campo .campo-area, .campo-txt, .campo-area {
+  background: transparent; border-color: var(--divisoria-esc); color: var(--papel);
+}
+.campo .campo-txt::placeholder, .campo .campo-area::placeholder,
+.campo-txt::placeholder, .campo-area::placeholder { color: var(--cimento); opacity: 1; }
+.campo .campo-txt:focus, .campo .campo-area:focus { border-color: var(--brasa); }
+
+/* Acao em texto sobre ferro: o cinza de corpo some no escuro. */
+.acao-texto { color: var(--texto-escuro); }
+.acao-texto:hover { color: var(--latao); }
+
+.barra { background: var(--divisoria-esc); }
+.botao--borda-clara { border-color: var(--divisoria-esc); color: var(--texto-escuro); }
+.botao--borda-clara:hover { border-color: var(--latao); color: var(--latao); }
+/* A caixa de dialogo continua sendo papel, mesmo aqui. Sem esta linha ela
+   herdava o texto claro do ferro e o botao secundario sumia dentro dela. */
+.dialogo .botao--borda-clara { border-color: var(--borda-campo); color: var(--ferro); }
+.dialogo .botao--borda-clara:hover { border-color: var(--ferro); color: var(--ferro); }
+.dialogo .acao-texto { color: var(--texto-corpo); }
+.botao--invertido { border-color: var(--divisoria-esc); color: var(--papel); }
+.botao--invertido:hover { background: var(--papel); color: var(--ferro); }
+.aviso { background: transparent; color: var(--texto-escuro); }
+.resultado { background: transparent; box-shadow: inset 0 0 0 1px var(--divisoria-esc); }
+.resultado b { color: var(--papel); }
+.resultado span { color: var(--nav-inativo); }
+.resultado.fecha { background: var(--brasa); box-shadow: none; }
+.resultado.fecha b, .resultado.fecha span { color: var(--papel); }
+.carga .vazio { fill: #3A322B; }
+.esperando-frase { color: var(--nav-inativo); }
 </style>
 </head>
 <body data-tela="atender">
 
 <div class="app-topo">
-  <div class="env-app app-topo-env">
+  <div class="app-topo-env">
     <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads">
       <div class="marca marca--negativo marca--curta" style="--corpo:24px" role="img" aria-label="Natiiva Leads">
         <div class="marca-nome" aria-hidden="true">
@@ -96,15 +186,15 @@
     <div class="faixa-env">
       <div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 260px">
         <span class="rotulo">Atendendo</span>
-        <strong id="base-nome" style="font:700 20px/1.25 'Chivo';color:var(--ferro)">—</strong>
+        <strong id="base-nome" style="font:700 20px/1.25 'Chivo';color:var(--papel)">—</strong>
         <span id="base-desc" style="font:400 13px/1.4 'Chivo';color:var(--cimento)"></span>
       </div>
       <div style="display:flex;gap:24px;align-items:baseline">
         <div style="display:flex;flex-direction:column;gap:2px">
-          <b id="prog-num" style="font-family:'Bricolage Grotesque';font-weight:700;font-size:26px;line-height:1;color:var(--ferro)">0 de 0</b>
+          <b id="prog-num" style="font-family:'Bricolage Grotesque';font-weight:800;font-size:28px;line-height:1;color:var(--papel)">0 de 0</b>
           <span class="rotulo">atendidas</span>
         </div>
-        <a class="botao botao--borda-clara" href="bases.html">Voltar</a>
+        <a class="acao-texto" href="bases.html">← Voltar</a>
       </div>
     </div>
     <div class="barra" style="margin-bottom:16px"><i id="prog-barra" style="width:0%"></i></div>
@@ -122,13 +212,13 @@
   <div id="acabou" style="display:none;padding:56px 0;flex-direction:column;gap:24px;max-width:640px">
     <span class="rotulo">Base concluída</span>
     <h1 class="titulo-pagina" style="font-size:34px">Acabou a lista.</h1>
-    <p style="font:400 16px/1.6 'Chivo';color:var(--texto-corpo);margin:0">
+    <p style="font:400 16px/1.6 'Chivo';color:var(--texto-escuro);margin:0">
       Todas as empresas desta base foram atendidas. O retrato abaixo é o que
       esse recorte produziu — e é ele que diz se vale repetir o filtro.
     </p>
     <div class="retrato" id="retrato-fim" style="display:flex;flex-wrap:wrap;gap:8px"></div>
     <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <a class="botao botao--brasa" href="app.html">Montar o próximo recorte</a>
+      <a class="acao-cheia" href="app.html" style="text-decoration:none">Montar o próximo recorte</a>
       <a class="botao botao--invertido" href="bases.html">Ver minhas bases</a>
     </div>
   </div>
@@ -212,8 +302,8 @@
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px">
-          <button class="botao botao--brasa botao--largo" id="btn-salvar" disabled>Salvar e ir para a próxima</button>
-          <button class="botao botao--borda-clara botao--largo" id="btn-pular">Pular por enquanto</button>
+          <button class="acao-cheia" id="btn-salvar" style="justify-content:center;width:100%" disabled>Salvar e ir para a próxima</button>
+          <button class="acao-texto" id="btn-pular" style="text-align:center">Pular por enquanto</button>
         </div>
         <p id="msg" style="font:400 13px/1.5 'Chivo';color:var(--cimento);margin:0"></p>
       </div>

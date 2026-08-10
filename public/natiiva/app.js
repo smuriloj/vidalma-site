@@ -619,23 +619,29 @@
 
         var prog = document.createElement('div');
         prog.className = 'b-prog';
+        // Progresso em vinte casas, e nao barra lisa. Barra lisa e SaaS;
+        // segmentada e contador de fabrica — e da para contar quantas faltam
+        // sem ler o numero embaixo.
         var barra = document.createElement('div');
-        barra.className = 'barra';
-        var i = document.createElement('i');
-        i.style.width = p + '%';
-        if (p >= 100) i.className = 'fim';
-        barra.appendChild(i);
+        barra.className = 'segmentos';
+        var cheias = Math.round(p / 5);
+        for (var s = 0; s < 20; s++) {
+          var seg = document.createElement('i');
+          if (s < cheias) seg.className = (p >= 100 ? 'fim' : 'on');
+          barra.appendChild(seg);
+        }
         var leg = document.createElement('span');
         leg.textContent = numero(feito) + ' de ' + numero(total) + ' · ' + p + '%';
         prog.appendChild(barra); prog.appendChild(leg);
 
+        // Acao em texto: a acao preenchida da tela e uma so, e fica no topo.
+        // Seis botoes laranja em coluna nao apontam para lugar nenhum.
         var acao = document.createElement('div');
         acao.className = 'b-acao';
         var bt = document.createElement('a');
-        bt.className = 'botao ' + (p >= 100 ? 'botao--borda-clara' : 'botao--brasa');
-        bt.style.cssText = 'min-height:38px;padding:0 16px;font-size:14px';
+        bt.className = 'acao-texto';
         bt.href = 'atender.html?base=' + b.id;
-        bt.textContent = p >= 100 ? 'Ver resultado' : 'Atender';
+        bt.textContent = p >= 100 ? 'Ver resultado →' : 'Atender →';
         acao.appendChild(bt);
 
         linha.appendChild(nome); linha.appendChild(prog); linha.appendChild(acao);
@@ -911,27 +917,32 @@
       var acao = document.createElement('div');
       acao.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap';
       var btn = document.createElement('a');
-      btn.className = feito >= total && total > 0 ? 'botao botao--invertido' : 'botao botao--brasa';
+      btn.className = 'acao-texto';
       btn.href = 'atender.html?base=' + b.id;
-      btn.textContent = feito >= total && total > 0 ? 'Ver resultado' : 'Atender base';
+      btn.textContent = feito >= total && total > 0 ? 'Ver resultado →' : 'Atender base →';
       acao.appendChild(btn);
       topo.appendChild(acao);
       art.appendChild(topo);
 
-      var barra = document.createElement('div');
-      barra.className = 'barra';
-      var i = document.createElement('i');
-      i.style.width = pct + '%';
-      if (pct >= 100) i.className = 'fim';
-      barra.appendChild(i);
-      art.appendChild(barra);
+      // O progresso entra na fileira dos numeros, segmentado. Fora dela virava
+      // mais uma faixa horizontal atravessando a tela — que e o que dava a
+      // sensacao de painel empilhado.
+      var segs = '';
+      var cheias = Math.round(pct / 5);
+      for (var s = 0; s < 20; s++) {
+        segs += '<i' + (s < cheias ? (pct >= 100 ? ' class="fim"' : ' class="on"') : '') + '></i>';
+      }
 
       var nums = document.createElement('div');
       nums.className = 'numeros-base';
       nums.innerHTML =
         '<div><b>' + numero(total) + '</b><span>empresas</span></div>'
         + '<div><b>' + numero(feito) + '</b><span>atendidas</span></div>'
-        + '<div><b class="latao">' + pct + '%</b><span>do caminho</span></div>';
+        + '<div><b class="latao">' + pct + '%</b><span>do caminho</span></div>'
+        + '<div class="prog"><div class="segmentos">' + segs + '</div>'
+        + '<span>' + (total - feito > 0
+            ? 'faltam ' + numero(total - feito)
+            : 'base concluída') + '</span></div>';
       art.appendChild(nums);
 
       var retrato = document.createElement('div');
@@ -2009,15 +2020,27 @@
           ? Math.round(vis.reduce(function (s, l) { return s + Number(l.score); }, 0) / vis.length)
           : '—');
 
-        // Quantos das linhas a vista tem telefone. E o numero que decide se o
-        // recorte da para trabalhar por ligacao, que e como se trabalha aqui.
-        var comTel = linhas.filter(function (l) {
-          return l.telefone_1 || l.tem_telefone;
-        }).length;
+        // O percentual com telefone e do RECORTE INTEIRO, e nao das 50 linhas
+        // carregadas. Calcular sobre as 50 dava quase sempre 100%, porque as 50
+        // sao as de maior score — e ter telefone e justamente um dos criterios
+        // que levantam o score. O numero ficava bonito e mentia.
+        //
+        // Custa uma segunda contagem, com a mesma protecao de estimativa da
+        // primeira: em recorte pequeno vem exata, em recorte grande vem
+        // estimada, e nunca varre meio milhao de linhas.
         var alvo = $('#vivo-tel');
-        if (alvo) {
-          alvo.innerHTML = (linhas.length ? Math.round(comTel * 100 / linhas.length) : '—')
-            + '<span style="font-size:21px;color:var(--cimento)">%</span>';
+        if (alvo && total != null) {
+          aplicarFiltros(sb.from(fonte).select('cnpj', { count: 'estimated', head: true }))
+            .not('telefone_1', 'is', null)
+            .then(function (rt) {
+              var comTel = rt.error ? null : rt.count;
+              alvo.innerHTML = (comTel == null || !total)
+                ? '—'
+                : Math.round(comTel * 100 / total)
+                  + '<span style="font-size:21px;color:var(--cimento)">%</span>';
+            });
+        } else if (alvo) {
+          alvo.textContent = '—';
         }
       });
   }

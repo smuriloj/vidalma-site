@@ -10,16 +10,26 @@
 <link rel="stylesheet" href="natiiva.css">
 <style>
 .app-topo { position: sticky; top: 0; z-index: 20; background: var(--ferro); }
-.app-topo-env { min-height: 64px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; row-gap: 8px; }
+/* Encosta na borda, como na tela de filtro. */
+.app-topo-env { min-height: 56px; display: flex; align-items: center; gap: 32px;
+  flex-wrap: wrap; row-gap: 8px; padding: 0 28px; }
 .aba {
   font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--nav-inativo);
   text-decoration: none; min-height: 44px; display: inline-flex; align-items: center;
   border-bottom: 2px solid transparent; background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer;
 }
 .aba[aria-current="page"] { color: var(--papel); border-bottom-color: var(--brasa); }
-.avatar { width: 34px; height: 34px; background: var(--brasa); color: var(--papel); display: flex; align-items: center; justify-content: center; font: 600 14px 'Chivo'; flex: none; }
+.avatar { width: 30px; height: 30px; background: var(--brasa); color: var(--papel); display: flex; align-items: center; justify-content: center; font: 700 11px 'Chivo'; flex: none; border: 0; cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
 
-.pessoa { border-bottom: 1px solid var(--divisoria-fraca); padding: 18px 20px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+/* Cabecalho de coluna sem faixa de fundo: so a etiqueta sobre o filete. */
+.cab-col { display: flex; gap: 20px; align-items: baseline; flex-wrap: wrap;
+  padding: 0 0 10px; border-bottom: 1px solid var(--divisoria); }
+
+.pessoa { min-height: 56px; padding: 14px 0; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+/* No celular as colunas desmontam e o cabecalho vira uma pilha de rotulos que
+   nao encabeca nada. Melhor nao mostrar do que mostrar errado. */
+@media (max-width: 700px) { .cab-col { display: none; } }
 .pessoa-nome { flex: 1 1 220px; min-width: 0; }
 .pessoa-nome b { display: block; font: 600 15px/1.35 'Chivo'; color: var(--ferro); }
 .pessoa-nome span { display: block; font: 400 13px/1.4 'Chivo'; color: var(--cimento); }
@@ -39,7 +49,9 @@
 .chave input:focus-visible + i { outline: 2px solid var(--brasa); outline-offset: 2px; }
 .chave span { font: 400 13px/1 'Chivo'; color: var(--texto-corpo); min-width: 76px; }
 
-.novo { background: var(--papel-elevado); box-shadow: 0 0 0 1px var(--divisoria); padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+/* O formulario nao e cartao: e a secao de baixo da tela, separada por filete.
+   Caixa dentro de caixa era o que empilhava contorno sem hierarquia nenhuma. */
+.novo { padding: 4px 0 0; display: flex; flex-direction: column; gap: 22px; max-width: 900px; }
 .novo-linha { display: flex; gap: 16px; flex-wrap: wrap; }
 .novo-linha > * { flex: 1 1 200px; }
 .campo-txt, .campo-sel {
@@ -53,7 +65,7 @@
 <body data-tela="gestao">
 
 <div class="app-topo">
-  <div class="env-app app-topo-env">
+  <div class="app-topo-env">
     <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads">
       <div class="marca marca--negativo marca--curta" style="--corpo:24px" role="img" aria-label="Natiiva Leads">
         <div class="marca-nome" aria-hidden="true">
@@ -98,7 +110,7 @@
   <div id="conteudo" style="display:none;flex-direction:column;gap:32px">
 
     <div style="display:flex;flex-direction:column;gap:10px">
-      <span class="rotulo">Acessos</span>
+      <p class="et">Acessos</p>
       <h1 class="titulo-pagina" style="font-size:38px">Quem entra, e o que cada um vê</h1>
       <p class="leitura" style="font:400 16px/1.6 'Chivo';color:var(--texto-corpo);margin:0">
         Estar cadastrado no login da Vidalma não dá acesso à Natiiva. Quem aparece
@@ -108,23 +120,23 @@
     </div>
 
     <!-- quem ja tem acesso -------------------------------------------- -->
-    <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:18px;border-top:1px solid var(--divisoria);padding-top:16px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap">
-        <span class="rotulo">Com acesso</span>
+        <p class="et">Com acesso</p>
         <span id="resumo-acessos" style="font:400 13px 'Chivo';color:var(--cimento)"></span>
       </div>
 
-      <div style="background:var(--papel-elevado);box-shadow:0 0 0 1px var(--divisoria)">
-        <div class="tabela-cab" style="padding:12px 20px">
-          <span class="rotulo" style="flex:1 1 220px">Pessoa</span>
-          <span class="rotulo" style="width:130px;flex:none">Papel</span>
-          <span class="rotulo" style="width:170px;flex:none">Responde a</span>
-          <span class="rotulo" style="width:110px;flex:none">Entra</span>
-          <span class="rotulo" style="width:130px;flex:none">Vê contato</span>
-          <span class="rotulo" style="width:130px;flex:none">Pede recarga</span>
-          <span class="rotulo" style="width:90px;flex:none">Acesso</span>
+      <div>
+        <div class="cab-col">
+          <span class="et" style="flex:1 1 220px">Pessoa</span>
+          <span class="et" style="width:130px;flex:none">Papel</span>
+          <span class="et" style="width:170px;flex:none">Responde a</span>
+          <span class="et" style="width:110px;flex:none">Entra</span>
+          <span class="et" style="width:130px;flex:none">Vê contato</span>
+          <span class="et" style="width:130px;flex:none">Pede recarga</span>
+          <span class="et" style="width:90px;flex:none">Acesso</span>
         </div>
-        <div id="pessoas"></div>
+        <div id="pessoas" class="lista"></div>
       </div>
 
       <div id="aviso-010" class="aviso" style="display:none">
@@ -160,8 +172,8 @@
     </div>
 
     <!-- criar usuario --------------------------------------------------- -->
-    <div style="display:flex;flex-direction:column;gap:16px">
-      <span class="rotulo">Criar usuário</span>
+    <div style="display:flex;flex-direction:column;gap:18px;border-top:1px solid var(--divisoria);padding-top:16px">
+      <p class="et">Criar usuário</p>
       <div class="novo">
         <p style="margin:0;font:400 15px/1.55 'Chivo';color:var(--texto-corpo);max-width:66ch">
           Cria o login e libera o acesso de uma vez. A pessoa entra com o e-mail
@@ -215,7 +227,7 @@
         </div>
 
         <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-          <button class="botao botao--brasa" id="btn-liberar">Criar e liberar acesso</button>
+          <button class="acao-cheia" id="btn-liberar">Criar e liberar acesso</button>
           <span id="msg-novo" style="font:400 14px/1.5 'Chivo';color:var(--cimento)"></span>
         </div>
 
