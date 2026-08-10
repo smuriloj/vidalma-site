@@ -1863,35 +1863,41 @@
 
     var esq = document.createElement('div');
     esq.className = 'col-empresa';
-    var nome = document.createElement('div');
+    var nome = document.createElement('b');
     nome.className = 'corta';
-    nome.style.cssText = "font:600 14px/1.35 'Chivo';color:var(--ferro)";
     nome.textContent = l.razao_social || '—';
-    var sob = document.createElement('div');
+    var sob = document.createElement('span');
     sob.className = 'corta';
-    sob.style.cssText = "font:400 13px/1.4 'Chivo';color:var(--cimento)";
     // Amostra mostra setor; liberado mostra o CNPJ.
     sob.textContent = (estado.liberado && l.cnpj ? l.cnpj : (l.setor || 'Setor não mapeado'))
                     + ' · ' + (l.cidade || '') + '/' + (l.uf || '');
     esq.appendChild(nome); esq.appendChild(sob);
 
+    var porte = document.createElement('div');
+    porte.className = 'col-porte corta';
+    // "Demais (medio/grande)" nao cabe em 92px e nao diz nada a mais.
+    porte.textContent = (l.porte || '—').replace('Demais (medio/grande)', 'Médio/grande')
+                                        .replace('Demais (médio/grande)', 'Médio/grande');
+
     var meio = document.createElement('div');
     meio.className = 'col-contato corta';
     meio.textContent = l.telefone_1 || (l.email || '—');
 
+    // O score vira a propria chapa da marca, cheia de baixo para cima ate o
+    // valor. E o simbolo desenhado pelo dado.
     var dir = document.createElement('div');
     dir.className = 'col-score';
-    var barra = document.createElement('span');
-    barra.className = 'score-barra';
+    var chapa = document.createElement('span');
+    chapa.className = 'score-chapa';
     var dentro = document.createElement('i');
-    dentro.style.width = Math.max(0, Math.min(100, l.score)) + '%';
-    barra.appendChild(dentro);
+    dentro.style.height = Math.max(0, Math.min(100, Number(l.score) || 0)) + '%';
+    chapa.appendChild(dentro);
     var n = document.createElement('span');
     n.className = 'score-num';
     n.textContent = l.score;
-    dir.appendChild(barra); dir.appendChild(n);
+    dir.appendChild(chapa); dir.appendChild(n);
 
-    b.appendChild(esq); b.appendChild(meio); b.appendChild(dir);
+    b.appendChild(esq); b.appendChild(porte); b.appendChild(meio); b.appendChild(dir);
     b.addEventListener('click', function () {
       estado.aberto = estado.aberto === l.id ? null : l.id;
       desenhar();
@@ -1922,6 +1928,27 @@
   }
   var linhas = [];
 
+  // Enquanto a consulta esta no ar, a tabela mostra o medidor da marca. Antes
+  // ela ficava vazia e muda, e nao dava para saber se o recorte nao tinha nada
+  // ou se o banco tinha travado.
+  function mostrarBuscando(ligado) {
+    var caixa = $('#buscando');
+    if (!caixa) {
+      caixa = document.createElement('div');
+      caixa.id = 'buscando';
+      caixa.className = 'esperando';
+      caixa.style.cssText = 'padding:44px 20px;align-items:center';
+      caixa.appendChild(svgCarga('carga--laco'));
+      var p = document.createElement('p');
+      p.className = 'esperando-frase';
+      p.textContent = 'Procurando na base…';
+      caixa.appendChild(p);
+      $('#linhas').parentNode.insertBefore(caixa, $('#vazio'));
+    }
+    caixa.style.display = ligado ? 'flex' : 'none';
+    if (ligado) $('#vazio').style.display = 'none';
+  }
+
   function desenhar() {
     var caixa = $('#linhas');
     caixa.innerHTML = '';
@@ -1937,10 +1964,18 @@
 
     var fonte = estado.liberado ? 'leads_completo' : 'leads_amostra';
 
-    aplicarFiltros(sb.from(fonte).select('*', { count: 'exact' }))
+    // 'estimated' e nao 'exact'. Contar exato passa por 581 mil linhas a cada
+    // mexida de filtro, e e um scan inteiro da tabela — foi o que deixou a
+    // tela parada e sem mensagem nenhuma. O PostgREST usa a estimativa do
+    // planejador quando o numero e grande e conta exato quando e pequeno, que
+    // e exatamente o que se quer: ninguem precisa do numero cravado em meio
+    // milhao, e todo mundo precisa dele cravado em 38.
+    mostrarBuscando(true);
+    aplicarFiltros(sb.from(fonte).select('*', { count: 'estimated' }))
       .order('score', { ascending: false })
       .limit(TETO)
       .then(function (r) {
+        mostrarBuscando(false);
         if (r.error) {
           linhas = []; desenhar();
           texto($('#contagem'), 'Não consegui ler a base: ' + (r.error.message || ''));
@@ -1958,9 +1993,14 @@
         var total = r.count;
         texto($('#vivo-total'), total != null ? numero(total) : '—');
         if (total != null) {
+          // Acima de mil o numero e estimativa do banco, e dizer isso custa
+          // uma palavra. Fingir precisao em meio milhao e que seria feio.
+          var cerca = total > 1000 ? 'cerca de ' : '';
           texto($('#contagem'), total > TETO
-            ? 'Mostrando as ' + TETO + ' primeiras de ' + numero(total) + ' empresas'
+            ? 'Mostrando as ' + TETO + ' primeiras de ' + cerca + numero(total) + ' empresas'
             : numero(total) + ' empresas neste recorte');
+        } else {
+          texto($('#contagem'), '');
         }
         // Media do que esta a vista. Com a base inteira em jogo, calcular a
         // media de milhoes de linhas a cada clique sairia caro.
@@ -1968,6 +2008,17 @@
         texto($('#vivo-score'), vis.length
           ? Math.round(vis.reduce(function (s, l) { return s + Number(l.score); }, 0) / vis.length)
           : '—');
+
+        // Quantos das linhas a vista tem telefone. E o numero que decide se o
+        // recorte da para trabalhar por ligacao, que e como se trabalha aqui.
+        var comTel = linhas.filter(function (l) {
+          return l.telefone_1 || l.tem_telefone;
+        }).length;
+        var alvo = $('#vivo-tel');
+        if (alvo) {
+          alvo.innerHTML = (linhas.length ? Math.round(comTel * 100 / linhas.length) : '—')
+            + '<span style="font-size:21px;color:var(--cimento)">%</span>';
+        }
       });
   }
 
@@ -2020,7 +2071,7 @@
 
       texto($('#conta'), m.nome || '');
       texto($('#sair'), (m.nome || '?').trim().charAt(0).toUpperCase());
-      $('#btn-cta').textContent = estado.liberado ? 'Baixar CSV' : 'Liberar acesso';
+      $('#btn-cta').textContent = estado.liberado ? 'Exportar CSV' : 'Liberar acesso';
       $('#aviso-amostra').style.display = estado.liberado ? 'none' : 'block';
       $('#app-corpo').style.display = 'flex';
 
@@ -2064,12 +2115,42 @@
         estado.cidade = cid.value.trim(); buscarLogo();
       });
 
+      // Escala segmentada, e nao barra lisa: barra lisa e SaaS, segmentada e
+      // contador industrial. O <input type=range> continua existindo escondido
+      // para o teclado e o leitor de tela nao perderem o controle.
       var slider = $('#score');
+      var escala = $('#escala-score');
+      var PASSOS = 20;   // 0 a 100 de cinco em cinco
+
+      function pintarEscala() {
+        $$('button', escala).forEach(function (t, i) {
+          t.classList.toggle('on', (i + 1) * 5 <= estado.minScore);
+        });
+        texto($('#score-valor'), estado.minScore);
+        slider.value = estado.minScore;
+      }
+      for (var i = 0; i < PASSOS; i++) {
+        (function (passo) {
+          var t = document.createElement('button');
+          t.type = 'button';
+          t.setAttribute('aria-label', 'Score mínimo ' + (passo * 5));
+          t.addEventListener('click', function () {
+            // Clicar no degrau ja marcado desliga o filtro. Sem isso, so o
+            // "limpar" tiraria o score, e o caminho de volta seria mais longo
+            // que o de ida.
+            estado.minScore = (estado.minScore === passo * 5) ? 0 : passo * 5;
+            pintarEscala();
+            buscarLogo();
+          });
+          escala.appendChild(t);
+        })(i + 1);
+      }
       slider.addEventListener('input', function () {
         estado.minScore = Number(slider.value);
-        texto($('#score-valor'), estado.minScore);
+        pintarEscala();
         buscarLogo();
       });
+      pintarEscala();
 
       var cap = $('#capital');
       cap.addEventListener('input', function () {
@@ -2133,7 +2214,7 @@
             p_limite: resp.quantos,
             p_reservar: !!resp.reservar
           }).then(function (r) {
-            b.disabled = false; b.textContent = 'Salvar recorte';
+            b.disabled = false; b.textContent = 'Congelar base de trabalho';
             if (r.error) { avisar('Não consegui criar a base', r.error.message); return; }
             location.href = 'atender.html?base=' + r.data;
           });
@@ -2207,7 +2288,7 @@
         estado.contato = 'Todos'; estado.situacao = 'Todas';
         estado.minScore = 0; estado.capitalIdx = 0; estado.idadeMin = 0;
         sel.value = 'Todos'; cid.value = ''; slider.value = 0; cap.value = 0; idade.value = 0;
-        texto($('#score-valor'), 0);
+        pintarEscala();
         texto($('#capital-valor'), 'R$ 0');
         texto($('#idade-valor'), '0 anos');
         barras($('#chips-setor'));
