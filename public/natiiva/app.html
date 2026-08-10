@@ -239,6 +239,7 @@
           <h1 class="recorte-titulo" id="recorte-desc">Toda a base</h1>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="botao botao--borda-clara" id="btn-recarga" style="display:none">Pedir recarga</button>
           <button class="botao botao--borda-clara" id="btn-criar-base">Salvar recorte</button>
           <button class="botao botao--brasa" id="btn-cta">Baixar CSV</button>
         </div>
@@ -259,7 +260,8 @@
         <div id="linhas"></div>
         <div class="vazio" id="vazio" style="display:none">
           <span style="font:600 16px 'Chivo';color:var(--ferro)">Nenhuma empresa neste recorte</span>
-          <span style="font:400 15px 'Chivo';color:var(--cimento)">Baixe o score mínimo ou solte um dos filtros.</span>
+          <span style="font:400 15px 'Chivo';color:var(--cimento)">Baixe o score mínimo, solte um dos filtros — ou avise que este recorte secou.</span>
+          <button class="botao botao--brasa" id="btn-recarga-vazio" style="display:none;align-self:center;margin-top:12px">Pedir recarga deste recorte</button>
         </div>
       </div>
 

@@ -48,6 +48,23 @@
 
 .vazio { background: var(--papel-elevado); box-shadow: 0 0 0 1px var(--divisoria); padding: 48px 32px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
 
+/* Fila de recarga. Mesma anatomia da equipe: nome a esquerda, numeros
+   alinhados a direita, e um estado em texto no fim da linha. */
+.r-linha { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--divisoria-fraca); }
+.r-linha:last-child { border-bottom: 0; }
+.r-nome { flex: 1 1 220px; min-width: 0; }
+.r-nome b { display: block; font: 600 15px/1.35 'Chivo'; color: var(--ferro); }
+.r-nome span { display: block; font: 400 13px/1.4 'Chivo'; color: var(--cimento); }
+.r-col { width: 150px; flex: none; font: 400 14px/1.4 'Chivo'; color: var(--texto-corpo); }
+.r-num { width: 110px; flex: none; font: 400 15px/1 'Chivo'; color: var(--texto-corpo); font-variant-numeric: tabular-nums; }
+.r-acao { width: 200px; flex: none; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.r-estado { font: 600 11px/1 'Chivo'; letter-spacing: .1em; text-transform: uppercase; padding: 6px 10px; }
+.r-pedido    { background: var(--brasa); color: var(--papel); }
+.r-andamento { background: var(--latao); color: var(--ferro); }
+.r-concluida { background: var(--papel-fundo); color: var(--texto-corpo); box-shadow: inset 0 0 0 1px var(--borda-campo); }
+.r-recusada  { background: var(--papel-fundo); color: var(--cimento); box-shadow: inset 0 0 0 1px var(--borda-campo); }
+.r-botao { background: none; border: 0; padding: 0; cursor: pointer; font: 400 13px 'Chivo'; color: var(--brasa); text-decoration: underline; }
+
 @media (max-width: 700px) {
   .b-prog, .b-acao { width: 100%; }
   .b-acao { justify-content: flex-start; }
@@ -165,6 +182,25 @@
         Se faltar alguém na lista, é porque a linha <em>Responde a</em> daquela
         pessoa ainda está vazia.
       </p>
+    </div>
+
+    <!-- recargas -------------------------------------------------------- -->
+    <div class="bloco" id="bloco-recargas" style="display:none">
+      <div class="bloco-cab">
+        <span class="rotulo">Recargas</span>
+        <span id="recargas-resumo" style="font:400 13px 'Chivo';color:var(--cimento)"></span>
+      </div>
+      <div style="background:var(--papel-elevado);box-shadow:0 0 0 1px var(--divisoria)">
+        <div class="tabela-cab" style="padding:12px 20px">
+          <span class="rotulo" style="flex:1 1 220px">Recorte</span>
+          <span class="rotulo" style="width:150px;flex:none">Quem pediu</span>
+          <span class="rotulo" style="width:110px;flex:none">Esperando</span>
+          <span class="rotulo" style="width:110px;flex:none">Tinha</span>
+          <span class="rotulo" style="width:200px;flex:none">Situação</span>
+        </div>
+        <div id="recargas"></div>
+      </div>
+      <p class="leitura" style="font:400 14px/1.6 'Chivo';color:var(--cimento);margin:0" id="recargas-nota"></p>
     </div>
 
     <!-- o estoque ------------------------------------------------------- -->

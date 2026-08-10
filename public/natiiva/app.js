@@ -345,7 +345,7 @@
   }
 
   function conferirMembro() {
-    return lerMembro('nome, papel, ativo, liberado')
+    return lerMembro('nome, papel, ativo, liberado, pode_recarregar')
       .then(function (r) {
         // A coluna "liberado" so existe depois do 005. Se o site subir antes do
         // SQL, a consulta falha por coluna inexistente — e o aviso na tela diria
@@ -353,8 +353,15 @@
         // errado. Aqui ele tenta de novo sem a coluna, e o site funciona igual
         // ate o 005 rodar.
         var m = (r.error && ((r.error.message || '') + ' ' + (r.error.code || ''))) || '';
-        if (r.error && /liberado|42703|PGRST204/i.test(m)) {
-          return lerMembro('nome, papel, ativo');
+        if (r.error && /liberado|pode_recarregar|42703|PGRST204/i.test(m)) {
+          return lerMembro('nome, papel, ativo, liberado')
+            .then(function (r2) {
+              var m2 = (r2.error && ((r2.error.message || '') + ' ' + (r2.error.code || ''))) || '';
+              if (r2.error && /liberado|42703|PGRST204/i.test(m2)) {
+                return lerMembro('nome, papel, ativo');
+              }
+              return r2;
+            });
         }
         return r;
       })
@@ -676,6 +683,111 @@
         : 'Ninguém aponta para você ainda — defina isso em Acessos.');
     }
 
+    // A fila de recarga. Quem administra ve todas e anda com elas; quem pediu
+    // ve as suas e so acompanha. A RLS ja separa isso — aqui e so o que mostrar.
+    function pintarRecargas(linhas, souAdmin) {
+      var caixa = $('#recargas');
+      caixa.innerHTML = '';
+      var abertas = linhas.filter(function (r) {
+        return r.situacao === 'PEDIDO' || r.situacao === 'EM_ANDAMENTO';
+      });
+
+      // Ordem: quem espera ha mais tempo primeiro. Fila por antiguidade, e nao
+      // por quem gritou mais alto.
+      linhas.sort(function (a, b) {
+        var pa = (a.situacao === 'PEDIDO' || a.situacao === 'EM_ANDAMENTO') ? 0 : 1;
+        var pb = (b.situacao === 'PEDIDO' || b.situacao === 'EM_ANDAMENTO') ? 0 : 1;
+        if (pa !== pb) return pa - pb;
+        return new Date(a.criada_em) - new Date(b.criada_em);
+      });
+
+      var ROTULO = {
+        PEDIDO:       ['Na fila',      'r-pedido'],
+        EM_ANDAMENTO: ['Extraindo',    'r-andamento'],
+        CONCLUIDA:    ['Concluída',    'r-concluida'],
+        RECUSADA:     ['Recusada',     'r-recusada']
+      };
+
+      linhas.slice(0, 12).forEach(function (r) {
+        var linha = document.createElement('div');
+        linha.className = 'r-linha';
+
+        var nome = document.createElement('div');
+        nome.className = 'r-nome';
+        var b1 = document.createElement('b'); b1.textContent = r.nome;
+        var s1 = document.createElement('span');
+        s1.textContent = (r.filtro && r.filtro.descricao) || r.motivo || '—';
+        nome.appendChild(b1); nome.appendChild(s1);
+        linha.appendChild(nome);
+
+        var quem = document.createElement('div');
+        quem.className = 'r-col';
+        quem.textContent = r.quem || r.quem_email || '—';
+        linha.appendChild(quem);
+
+        var esp = document.createElement('div');
+        esp.className = 'r-num';
+        esp.textContent = r.horas != null
+          ? (r.horas < 24 ? Math.round(r.horas) + ' h'
+                          : Math.round(r.horas / 24) + ' d')
+          : '—';
+        linha.appendChild(esp);
+
+        var tinha = document.createElement('div');
+        tinha.className = 'r-num';
+        tinha.textContent = r.antes == null ? '—' : numero(r.antes);
+        linha.appendChild(tinha);
+
+        var acao = document.createElement('div');
+        acao.className = 'r-acao';
+        var et = document.createElement('span');
+        var conf = ROTULO[r.situacao] || ['—', 'r-concluida'];
+        et.className = 'r-estado ' + conf[1];
+        et.textContent = conf[0];
+        acao.appendChild(et);
+
+        // Quanto entrou depois da recarga. E o que prova que ela serviu.
+        if (r.entrou != null) {
+          var ganho = document.createElement('span');
+          ganho.style.cssText = "font:400 13px 'Chivo';color:var(--cimento)";
+          ganho.textContent = (r.entrou > 0 ? '+' : '') + numero(r.entrou);
+          acao.appendChild(ganho);
+        }
+
+        if (souAdmin && (r.situacao === 'PEDIDO' || r.situacao === 'EM_ANDAMENTO')) {
+          var bt = document.createElement('button');
+          bt.type = 'button';
+          bt.className = 'r-botao';
+          bt.textContent = r.situacao === 'PEDIDO' ? 'Comecei' : 'Concluí';
+          bt.addEventListener('click', function () {
+            var alvo = r.situacao === 'PEDIDO' ? 'EM_ANDAMENTO' : 'CONCLUIDA';
+            bt.disabled = true;
+            sb.rpc('andar_recarga', { p_id: r.id, p_situacao: alvo })
+              .then(function (rr) {
+                if (rr.error) { avisar('Não consegui', rr.error.message); bt.disabled = false; return; }
+                location.reload();
+              });
+          });
+          acao.appendChild(bt);
+        }
+        linha.appendChild(acao);
+        caixa.appendChild(linha);
+      });
+
+      texto($('#recargas-resumo'), abertas.length
+        ? abertas.length + (abertas.length === 1 ? ' pedido em aberto' : ' pedidos em aberto')
+        : 'Nenhum pedido em aberto');
+
+      texto($('#recargas-nota'), souAdmin
+        ? 'No computador da extração: python carga.py --recargas grava o arquivo '
+        + 'que o LEADS.py lê, com os CNAEs de cada pedido. Ao terminar a carga, '
+        + 'os pedidos fecham sozinhos.'
+        : 'Quem opera a extração já recebeu o seu pedido com os CNAEs prontos. '
+        + 'Assim que a carga rodar, o número aqui muda sozinho.');
+
+      $('#bloco-recargas').style.display = linhas.length ? 'flex' : 'none';
+    }
+
     function pintarEstoque(e) {
       texto($('#e-disp'),  numero(e.disponiveis || 0));
       texto($('#e-res'),   numero(e.reservados || 0));
@@ -713,6 +825,13 @@
           $('#aba-acessos').style.display = 'inline-flex';
         }
         $('#conteudo').style.display = 'flex';
+
+        // A fila de recarga. Nao existe antes do 012, e a tela nao pode quebrar
+        // por causa disso — some, e pronto.
+        sb.from('recargas_fila').select('*').then(function (rr) {
+          if (rr.error) return;
+          pintarRecargas(rr.data || [], ['DONO', 'ADMIN'].indexOf(m.papel) >= 0);
+        });
 
         // As bases vem de bases_resumo, que existe desde o 007. Este pedaco da
         // tela funciona mesmo sem o 010 ter rodado.
@@ -1141,6 +1260,7 @@
       linha.appendChild(chefe);
       linha.appendChild(chave(p, 'ativo', 'Entra', 110));
       linha.appendChild(chave(p, 'liberado', 'Vê contato', 130));
+      linha.appendChild(chave(p, 'pode_recarregar', 'Pede recarga', 130));
 
       // Remover e diferente de desligar: desligar bloqueia na hora e guarda o
       // historico; remover apaga a linha. Na duvida, desligue.
@@ -1212,14 +1332,14 @@
 
     function listar() {
       return sb.from('membros')
-        .select('usuario_id, nome, email, papel, ativo, liberado, supervisor_id')
+        .select('usuario_id, nome, email, papel, ativo, liberado, supervisor_id, pode_recarregar')
         .order('papel').order('nome')
         .then(function (r) {
           // supervisor_id so existe depois do 010. Sem esta segunda tentativa,
           // subir o site antes de rodar o SQL deixaria a tela de acessos vazia
           // com uma mensagem que manda procurar no lugar errado.
           var m = (r.error && ((r.error.message || '') + ' ' + (r.error.code || ''))) || '';
-          if (r.error && /supervisor_id|42703|PGRST204/i.test(m)) {
+          if (r.error && /supervisor_id|pode_recarregar|42703|PGRST204/i.test(m)) {
             semHierarquia = true;
             return sb.from('membros')
               .select('usuario_id, nome, email, papel, ativo, liberado')
@@ -1905,6 +2025,14 @@
       $('#app-corpo').style.display = 'flex';
 
       estado.admin = ['DONO', 'ADMIN'].indexOf(m.papel) >= 0;
+      estado.podeRecarregar = m.pode_recarregar === true || estado.admin;
+
+      // O botao de pedir recarga so aparece para quem tem a permissao. Botao
+      // que existe e recusa e pior do que botao que nao existe.
+      if (estado.podeRecarregar) {
+        $('#btn-recarga').style.display = 'inline-flex';
+        $('#btn-recarga-vazio').style.display = 'inline-flex';
+      }
 
       barras($('#chips-setor'));
       chips($('#chips-porte'),   PORTES,    'porte');
@@ -2012,6 +2140,65 @@
         });
       });
 
+
+      // Pedir recarga. O recorte da tela inteiro vai junto — e ele que vira a
+      // configuracao que o LEADS.py le do outro lado. Quem pede nao precisa
+      // saber o que e prefixo de CNAE; quem opera nao precisa adivinhar o que
+      // foi pedido.
+      function pedirRecarga() {
+        var total = $('#vivo-total').textContent;
+        dialogo({
+          titulo: 'Pedir recarga deste recorte',
+          texto: 'Este recorte tem ' + total + ' empresas disponíveis agora. '
+               + 'O pedido chega para quem opera a extração já traduzido em '
+               + 'configuração de robô — ninguém vai transcrever nada na mão.',
+          ok: 'Pedir recarga',
+          cancelar: 'Deixar para depois',
+          campos: [
+            { id: 'nome', tipo: 'texto', rotulo: 'Como chamar este pedido',
+              valor: descreverRecorte(),
+              ajuda: 'É o nome que vai aparecer na fila de quem opera.' },
+            { id: 'motivo', tipo: 'texto', rotulo: 'O que aconteceu',
+              valor: 'Recorte secou',
+              ajuda: 'Uma linha. Ajuda a priorizar quando houver vários pedidos.' }
+          ]
+        }).then(function (resp) {
+          if (!resp) return;
+          var b = $('#btn-recarga');
+          b.disabled = true;
+          sb.rpc('pedir_recarga', {
+            p_nome: resp.nome,
+            p_motivo: resp.motivo,
+            p_filtro: {
+              prefixos: prefixosAtuais(), uf: estado.uf === 'Todos' ? null : estado.uf,
+              cidade: estado.cidade || null, porte: porteAtual(),
+              unidade: valorDe(UNIDADES, estado.unidade), faixa: valorDe(FAIXAS, estado.faixa),
+              score: estado.minScore, capital: CAPITAIS[estado.capitalIdx],
+              idade: estado.idadeMin, contato: valorDe(CONTATOS, estado.contato),
+              descricao: descreverRecorte()
+            }
+          }).then(function (r) {
+            b.disabled = false;
+            if (r.error) {
+              var m = (r.error.message || '') + ' ' + (r.error.code || '');
+              if (/PGRST202|does not exist|not find|schema cache/i.test(m)) {
+                avisar('Ainda não dá para pedir',
+                       'Falta rodar o sql/012_recarga.sql no Supabase. É ele que '
+                     + 'cria a fila de recarga.');
+                return;
+              }
+              avisar('Não consegui registrar o pedido', r.error.message);
+              return;
+            }
+            avisar('Pedido registrado',
+                   'Ficou na fila com o número ' + r.data + '. Quem opera a extração '
+                 + 'já consegue ver, com os CNAEs deste recorte prontos para o robô. '
+                 + 'Você acompanha o andamento na tela de Início.');
+          });
+        });
+      }
+      $('#btn-recarga').addEventListener('click', pedirRecarga);
+      $('#btn-recarga-vazio').addEventListener('click', pedirRecarga);
 
       $('#limpar').addEventListener('click', function () {
         estado.setor = 'Todos'; estado.prefixos = null; estado.setorAberto = null;
