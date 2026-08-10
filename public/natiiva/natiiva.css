@@ -325,6 +325,107 @@ button, input, select, textarea, .cartao, .chip, .botao { border-radius: 0; }
 .roteiro-frase { font: italic 400 20px/1.35 'Instrument Serif', Georgia, serif; color: var(--papel); margin: 0; }
 
 /* =============================================================================
+   CARREGANDO
+   =============================================================================
+   O simbolo da marca ja e um medidor: a faixa de latao ocupa 24% da chapa
+   porque esse era o score medio da base. Entao o carregamento nao inventa
+   forma nova — ele enche a chapa, e a faixa de latao sobe montada no topo do
+   nivel, como marca d'agua de tanque.
+
+   Isso resolve os dois casos com um desenho so. Sem porcentagem, roda em laco.
+   Com porcentagem (montar base, carregar lista), o nivel E a porcentagem: a
+   pessoa le o progresso no desenho antes de ler o numero. Um circulo girando
+   nao faria a segunda metade.
+
+   Uma decisao de tempo que sai do manual de proposito: ele manda transicao
+   entre 120 e 160 ms, e isso vale para mudanca de estado. Um laco de espera em
+   140 ms viraria tremida. Laco ambiente fica em 1.400 ms; a transicao de cada
+   degrau de progresso continua em 140 ms.
+   ============================================================================= */
+.carga {
+  --corpo-carga: 40px;
+  width:  calc(var(--corpo-carga) * 46 / 64);
+  height: var(--corpo-carga);
+  flex: none;
+}
+.carga .vazio { fill: var(--divisoria); }
+.carga .nivel { fill: var(--brasa); transform-box: fill-box; transform-origin: bottom; }
+.carga .banda { fill: var(--latao); transform-box: view-box; }
+
+/* Sobre fundo ferro o vao da chapa precisa ser mais claro que o fundo, senao
+   some. */
+.carga--negativo .vazio { fill: #3A322B; }
+
+@keyframes carga-nivel {
+  0%   { transform: scaleY(.24); }
+  55%  { transform: scaleY(1); }
+  100% { transform: scaleY(.24); }
+}
+@keyframes carga-banda {
+  0%   { transform: translateY(48.64px); }
+  55%  { transform: translateY(0); }
+  100% { transform: translateY(48.64px); }
+}
+.carga--laco .nivel { animation: carga-nivel 1400ms cubic-bezier(.45,0,.55,1) infinite; }
+.carga--laco .banda { animation: carga-banda 1400ms cubic-bezier(.45,0,.55,1) infinite; }
+
+/* Progresso real. O nivel e a porcentagem, escrita em --f pelo JavaScript.
+   Linear porque acompanha numero de verdade: curva de aceleracao aqui mentiria
+   sobre a velocidade. */
+.carga--medidor .nivel {
+  transform: scaleY(var(--f, .02));
+  transition: transform 140ms linear;
+}
+.carga--medidor .banda {
+  transform: translateY(calc(64px * (1 - var(--f, .02))));
+  transition: transform 140ms linear;
+}
+
+/* O bloco inteiro de espera: simbolo, rotulo e frase. */
+.esperando {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 16px;
+  padding: 40px 0;
+}
+.esperando p { margin: 0; }
+.esperando .rotulo { color: var(--cimento); }
+.esperando-frase {
+  font: 400 16px/1.5 'Chivo', system-ui, sans-serif;
+  color: var(--cimento);
+}
+
+/* Tela inteira, para a espera longa. O simbolo entra gigante e quase apagado
+   atras: e a unica transparencia do sistema, e existe para o simbolo virar
+   fundo sem virar ruido. */
+.espera-cheia {
+  position: relative; overflow: hidden;
+  background: var(--ferro);
+  min-height: 60vh;
+  display: flex; align-items: center; justify-content: center;
+}
+.espera-dagua {
+  position: absolute; right: -4%; bottom: -16%;
+  height: 124%; width: auto; opacity: .06; fill: var(--papel);
+  pointer-events: none;
+}
+.espera-frente {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 48px 24px; text-align: center;
+}
+.espera-frente .rotulo { color: var(--latao); }
+.espera-frente p:last-child {
+  font: italic 400 24px/1.25 'Instrument Serif', Georgia, serif;
+  color: var(--papel); margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carga--laco .nivel, .carga--laco .banda { animation: none; }
+  .carga--laco .nivel { transform: scaleY(1); }
+  .carga--laco .banda { transform: translateY(0); }
+  .carga--medidor .nivel, .carga--medidor .banda { transition: none; }
+}
+
+/* =============================================================================
    CAIXA DE DIALOGO
    =============================================================================
    Substitui o prompt/confirm/alert do navegador. Aqueles sao cinza de sistema

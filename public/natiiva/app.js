@@ -30,6 +30,56 @@
   function abs(destino) { return location.href.replace(/[^/]*$/, '') + destino; }
 
   /* =========================================================================
+     CARREGANDO
+     =========================================================================
+     Monta o simbolo da marca como medidor. Ver o bloco CARREGANDO do
+     natiiva.css para o porque.
+
+     Feito aqui e nao no HTML de cada tela porque sao cinco telas: o mesmo
+     desenho copiado cinco vezes e o comeco de cinco versoes diferentes dele.
+     ========================================================================= */
+  var contaCarga = 0;
+
+  function svgCarga(classes) {
+    var id = 'cg' + (++contaCarga);
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 46 64');
+    svg.setAttribute('class', 'carga ' + (classes || 'carga--laco'));
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Carregando');
+    svg.innerHTML =
+      '<defs>'
+      + '<clipPath id="' + id + 'e"><path d="M0 7 L7 0 H17 A3 3 0 0 1 20 3 V61 '
+      + 'A3 3 0 0 1 17 64 H3 A3 3 0 0 1 0 61 Z"/></clipPath>'
+      + '<clipPath id="' + id + 'd"><path d="M26 3 A3 3 0 0 1 29 0 H39 L46 7 V61 '
+      + 'A3 3 0 0 1 43 64 H29 A3 3 0 0 1 26 61 Z"/></clipPath>'
+      + '</defs>'
+      + '<g clip-path="url(#' + id + 'e)">'
+      + '<rect class="vazio" x="0" y="0" width="20" height="64"/>'
+      + '<rect class="nivel" x="0" y="0" width="20" height="64"/>'
+      + '<rect class="banda" x="0" y="0" width="20" height="15.36"/></g>'
+      + '<g clip-path="url(#' + id + 'd)">'
+      + '<rect class="vazio" x="26" y="0" width="20" height="64"/>'
+      + '<rect class="nivel" x="26" y="0" width="20" height="64"/>'
+      + '<rect class="banda" x="26" y="0" width="20" height="15.36"/></g>';
+    return svg;
+  }
+
+  // Poe o medidor em cima do bloco de espera que cada tela ja tem. Se a tela
+  // nao tiver o bloco, nao faz nada — nenhuma tela quebra por causa disso.
+  (function enfeitarEspera() {
+    var caixa = document.getElementById('carregando');
+    if (!caixa || caixa.querySelector('.carga')) return;
+    caixa.classList.add('esperando');
+    caixa.insertBefore(svgCarga('carga--laco'), caixa.firstChild);
+    var frase = caixa.querySelector('p:last-child');
+    if (frase && !frase.classList.contains('rotulo')) {
+      frase.removeAttribute('style');
+      frase.className = 'esperando-frase';
+    }
+  })();
+
+  /* =========================================================================
      CAIXA DE DIALOGO
      =========================================================================
      O prompt(), o confirm() e o alert() do navegador funcionam, mas sao cinza
