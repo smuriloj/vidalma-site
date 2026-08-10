@@ -10,7 +10,11 @@
 <link rel="stylesheet" href="natiiva.css">
 <style>
 .app-topo { position: sticky; top: 0; z-index: 20; background: var(--ferro); }
-.app-topo-env { min-height: 56px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; row-gap: 8px; }
+/* Encosta na borda, como o desenho pede. Conteiner centralizado de 1440
+   deixava uma faixa de papel a esquerda da regua preta, e a regua parecia
+   solta no meio da tela. */
+.app-topo-env { min-height: 56px; display: flex; align-items: center; gap: 32px;
+  flex-wrap: wrap; row-gap: 8px; padding: 0 28px; }
 .aba {
   font: 400 14px/1 'Chivo', system-ui, sans-serif; color: var(--nav-inativo);
   text-decoration: none; min-height: 44px; display: inline-flex; align-items: center;
@@ -251,7 +255,7 @@
 <body data-tela="app">
 
 <div class="app-topo">
-  <div class="env-app app-topo-env">
+  <div class="app-topo-env">
     <a href="index.html" style="text-decoration:none" aria-label="Natiiva Leads">
       <div class="marca marca--negativo marca--curta" style="--corpo:24px" role="img" aria-label="Natiiva Leads">
         <div class="marca-nome" aria-hidden="true">
@@ -297,7 +301,9 @@
     </div>
   </div>
 
-  <div id="app-corpo" class="app-corpo" style="display:none">
+</div>
+
+<div id="app-corpo" class="app-corpo" style="display:none">
 
     <!-- a regua de comando ---------------------------------------------- -->
     <aside class="app-lado">
@@ -454,7 +460,6 @@
         </div>
       </div>
     </section>
-  </div>
 </div>
 
 <script defer src="supabase.js"></script>
