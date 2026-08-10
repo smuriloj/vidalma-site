@@ -1249,18 +1249,70 @@
 
     // Criar o login e liberar o acesso, numa acao so.
     //
-    // O login e criado pelo cadastro publico do Supabase, e nao pela API de
-    // administracao: esta ultima exige a chave service_role, que abre o banco
-    // inteiro e nunca pode chegar ao navegador.
+    // Quem cria o login e o BANCO, pela funcao natiiva.criar_acesso (sql/011),
+    // e nao o cadastro publico do Supabase. Dois motivos:
     //
-    // O cadastro usa uma segunda conexao, com guarda propria e sem gravar
-    // sessao. Sem isso, criar um usuario derrubaria a sua sessao e voce sairia
-    // do sistema a cada cadastro — o Supabase entra automaticamente com quem
-    // acabou de se cadastrar.
+    // O cadastro publico so funciona com "Allow new users to sign up" ligado, e
+    // ele precisa ficar desligado — este banco de autenticacao e o mesmo da area
+    // do cliente da Vidalma, e liga-lo deixaria qualquer pessoa da internet
+    // criar conta ali. Com ele desligado, a resposta era "Signups not allowed
+    // for this instance".
+    //
+    // E a API de administracao, que seria o outro caminho, exige a chave
+    // service_role — que abre o banco inteiro e nunca pode chegar ao navegador.
+    //
+    // A funcao no banco resolve os dois: roda com poder de dono, mas a primeira
+    // linha dela confere se quem chamou e admin.
+    //
+    // O cadastro publico fica como plano B, para o caso de o site subir antes de
+    // o 011 rodar. A ordem e: funcao primeiro, cadastro publico depois.
+    //
+    // A segunda conexao existe porque o cadastro publico entra automaticamente
+    // com quem acabou de se cadastrar. Sem guarda propria e sem gravar sessao,
+    // criar um usuario derrubaria a sua e voce sairia do sistema a cada cadastro.
     var sbCadastro = window.supabase.createClient(cfg.url, cfg.chave, {
       auth: { storageKey: 'natiiva-cadastro', persistSession: false,
               autoRefreshToken: false, detectSessionInUrl: false }
     });
+
+    // Plano B: o caminho antigo, que depende do cadastro publico estar ligado.
+    function criarPeloCadastroPublico(email, nome, senha, papel, liberado, chefe) {
+      return sbCadastro.auth.signUp({ email: email, password: senha })
+        .then(function (r) {
+          var m = (r.error && r.error.message || '').toLowerCase();
+          if (r.error && /signup|sign up|not allowed|disabled/.test(m)) {
+            throw new Error('SEM_CADASTRO_PUBLICO');
+          }
+          // "ja cadastrado" nao e erro: e quem ja tem login da area do cliente
+          // da Vidalma e so precisa do acesso a Natiiva.
+          if (r.error && !/already|registered|exists/.test(m)) {
+            throw new Error(r.error.message);
+          }
+          var arg = { p_email: email, p_nome: nome, p_papel: papel, p_liberado: liberado };
+          if (chefe) arg.p_supervisor = chefe;
+          return sb.rpc('liberar_membro', arg).then(function (rr) {
+            // Antes do 010 a funcao no banco nao tem o parametro do supervisor,
+            // e o PostgREST responde "funcao nao encontrada" em vez de ignorar
+            // o argumento a mais.
+            var m2 = (rr.error && ((rr.error.message || '') + ' ' + (rr.error.code || ''))) || '';
+            if (rr.error && chefe && /PGRST202|does not exist|not find/i.test(m2)) {
+              semHierarquia = true;
+              return sb.rpc('liberar_membro', {
+                p_email: email, p_nome: nome, p_papel: papel, p_liberado: liberado
+              });
+            }
+            return rr;
+          });
+        })
+        .then(function (r) {
+          if (r.error) throw new Error(r.error.message);
+          if (r.data === false) {
+            throw new Error('O login foi criado, mas o Supabase ainda não o '
+                          + 'confirmou. Espere alguns segundos e clique de novo.');
+          }
+          return { novo: true };
+        });
+    }
 
     $('#btn-liberar').addEventListener('click', function () {
       var email = $('#novo-email').value.trim();
@@ -1283,43 +1335,32 @@
       msg.textContent = 'Criando o login...';
       $('#senha-pronta').style.display = 'none';
 
-      sbCadastro.auth.signUp({ email: email, password: senha })
+      var arg = {
+        p_email: email, p_senha: senha, p_nome: nome,
+        p_papel: papel, p_liberado: liberado
+      };
+      if (chefe) arg.p_supervisor = chefe;
+
+      sb.rpc('criar_acesso', arg)
         .then(function (r) {
-          // "ja cadastrado" nao e erro aqui: e o caso de quem ja tem login da
-          // area do cliente da Vidalma e so precisa do acesso a Natiiva.
-          var m = (r.error && r.error.message || '').toLowerCase();
-          if (r.error && !/already|registered|exists/.test(m)) {
-            throw new Error(r.error.message);
+          if (!r.error) return { novo: !!(r.data && r.data.novo) };
+          var m = (r.error.message || '') + ' ' + (r.error.code || '');
+          // A funcao ainda nao existe: o 011 nao rodou. Cai para o caminho
+          // antigo, que funciona se o cadastro publico estiver ligado.
+          if (/PGRST202|does not exist|not find|schema cache/i.test(m)) {
+            return criarPeloCadastroPublico(email, nome, senha, papel, liberado, chefe);
           }
-          msg.textContent = 'Liberando o acesso...';
-          var arg = { p_email: email, p_nome: nome, p_papel: papel, p_liberado: liberado };
-          if (chefe) arg.p_supervisor = chefe;
-          return sb.rpc('liberar_membro', arg).then(function (rr) {
-            // Antes do 010 a funcao no banco nao tem o parametro do supervisor,
-            // e o PostgREST responde "funcao nao encontrada" em vez de ignorar
-            // o argumento a mais. Tenta de novo sem ele: o acesso e criado
-            // igual, so a equipe fica para depois de rodar o SQL.
-            var m2 = (rr.error && ((rr.error.message || '') + ' ' + (rr.error.code || ''))) || '';
-            if (rr.error && chefe && /PGRST202|does not exist|not find/i.test(m2)) {
-              semHierarquia = true;
-              return sb.rpc('liberar_membro', {
-                p_email: email, p_nome: nome, p_papel: papel, p_liberado: liberado
-              });
-            }
-            return rr;
-          });
+          throw new Error(r.error.message);
         })
-        .then(function (r) {
+        .then(function (res) {
           botao.disabled = false; botao.textContent = 'Criar e liberar acesso';
-          if (r.error) { msg.textContent = 'Não consegui: ' + r.error.message; return; }
-          if (r.data === false) {
-            msg.textContent = 'O login foi criado, mas o Supabase ainda não o '
-                            + 'confirmou. Espere alguns segundos e clique de novo.';
-            return;
-          }
           msg.textContent = '';
           texto($('#pronta-email'), email);
-          texto($('#pronta-senha'), senha);
+          // Para quem ja tinha login, mostrar a senha nova seria mentira: a
+          // senha dela continua sendo a de antes, e de proposito — trocar
+          // derrubaria o acesso dela na area do cliente da Vidalma.
+          texto($('#pronta-senha'), (res && res.novo === false)
+            ? 'a senha que ela já usa na Vidalma' : senha);
           $('#senha-pronta').style.display = 'flex';
           $('#novo-email').value = ''; $('#novo-nome').value = '';
           $('#nova-senha').value = '';
@@ -1327,7 +1368,14 @@
         })
         .catch(function (e) {
           botao.disabled = false; botao.textContent = 'Criar e liberar acesso';
-          msg.textContent = 'Não consegui: ' + (e && e.message || e);
+          var t = (e && e.message) || String(e);
+          if (t === 'SEM_CADASTRO_PUBLICO') {
+            t = 'o cadastro de novos logins está desligado no Supabase, e o '
+              + 'arquivo sql/011_criar_login.sql ainda não foi rodado. Rode ele '
+              + 'no SQL Editor e tente de novo — é ele que permite criar o login '
+              + 'daqui sem ligar o cadastro público.';
+          }
+          msg.textContent = 'Não consegui: ' + t;
         });
     });
 
