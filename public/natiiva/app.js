@@ -1404,18 +1404,77 @@
 
   // Os dez setores do design, traduzidos para prefixo de CNAE. A traducao vive
   // aqui e no dicionario PLAYBOOK do LEADS.py — sao os mesmos prefixos.
+  // Os 35 grupos de CNAE que o LEADS.py extrai, agrupados em 14 barras.
+  //
+  // A lista antiga tinha dez chips e cobria 19 dos 35 — o resto da base existia
+  // e nao tinha como ser filtrado. Na amostra de 39.814 empresas isso deixava
+  // 10.661 (26,8%) fora de qualquer filtro, incluindo energia eletrica, agua e
+  // saneamento, manutencao de maquinas e produtos de metal, que juntos passam
+  // de oito mil empresas.
+  //
+  // Os nomes sao os mesmos da tabela natiiva.playbook (sql/002), de proposito:
+  // e o texto que a pessoa ve no roteiro de abordagem. Dois nomes para a mesma
+  // coisa em duas telas seria erro esperando para acontecer.
   var SETORES = [
-    { nome: 'Todos',              prefixos: null },
-    { nome: 'Metalurgia',         prefixos: ['24'] },
-    { nome: 'Alimentos',          prefixos: ['10', '11'] },
-    { nome: 'Cimento e cerâmica', prefixos: ['23'] },
-    { nome: 'Mineração',          prefixos: ['05', '06', '07', '08', '09'] },
-    { nome: 'Plástico',           prefixos: ['22'] },
-    { nome: 'Papel',              prefixos: ['17'] },
-    { nome: 'Química',            prefixos: ['19', '20', '21'] },
-    { nome: 'Têxtil',             prefixos: ['13', '14'] },
-    { nome: 'Reciclagem',         prefixos: ['38'] },
-    { nome: 'Transporte',         prefixos: ['49', '52'] }
+    { nome: 'Alimentos e bebidas', prefixos: ['10', '11'], filhos: [
+      { nome: 'Alimentos', prefixos: ['10'] },
+      { nome: 'Bebidas', prefixos: ['11'] } ] },
+
+    { nome: 'Mineração e extração', prefixos: ['05', '06', '07', '08', '09'], filhos: [
+      { nome: 'Minerais não-metálicos (pedreira, areia, brita)', prefixos: ['08'] },
+      { nome: 'Minerais metálicos', prefixos: ['07'] },
+      { nome: 'Petróleo e gás', prefixos: ['06'] },
+      { nome: 'Apoio à mineração', prefixos: ['09'] },
+      { nome: 'Carvão', prefixos: ['05'] } ] },
+
+    { nome: 'Metal', prefixos: ['24', '25'], filhos: [
+      { nome: 'Metalurgia e siderurgia', prefixos: ['24'] },
+      { nome: 'Produtos de metal (usinagem, caldeiraria, estamparia)', prefixos: ['25'] } ] },
+
+    { nome: 'Máquinas e equipamentos', prefixos: ['28', '33', '27', '26'], filhos: [
+      { nome: 'Manutenção e reparação de máquinas', prefixos: ['33'] },
+      { nome: 'Máquinas e equipamentos', prefixos: ['28'] },
+      { nome: 'Máquinas e materiais elétricos', prefixos: ['27'] },
+      { nome: 'Eletrônicos', prefixos: ['26'] } ] },
+
+    { nome: 'Veículos e autopeças', prefixos: ['29', '30'], filhos: [
+      { nome: 'Veículos automotores', prefixos: ['29'] },
+      { nome: 'Autopeças e outros transportes', prefixos: ['30'] } ] },
+
+    { nome: 'Química e combustíveis', prefixos: ['20', '19', '21'], filhos: [
+      { nome: 'Químicos', prefixos: ['20'] },
+      { nome: 'Derivados de petróleo e biocombustível', prefixos: ['19'] },
+      { nome: 'Farmacêutico', prefixos: ['21'] } ] },
+
+    { nome: 'Cimento, cerâmica e vidro', prefixos: ['23'] },
+
+    { nome: 'Plástico e borracha', prefixos: ['22'] },
+
+    { nome: 'Papel, madeira e móveis', prefixos: ['17', '16', '31'], filhos: [
+      { nome: 'Papel e celulose', prefixos: ['17'] },
+      { nome: 'Madeira (serraria, compensado, MDF)', prefixos: ['16'] },
+      { nome: 'Móveis', prefixos: ['31'] } ] },
+
+    { nome: 'Têxtil, confecção e couro', prefixos: ['13', '14', '15'], filhos: [
+      { nome: 'Confecção', prefixos: ['14'] },
+      { nome: 'Têxtil (fiação, tecelagem, malharia)', prefixos: ['13'] },
+      { nome: 'Couro e calçados', prefixos: ['15'] } ] },
+
+    { nome: 'Energia, água e resíduos', prefixos: ['35', '36', '38'], filhos: [
+      { nome: 'Energia elétrica', prefixos: ['35'] },
+      { nome: 'Captação e tratamento de água', prefixos: ['36'] },
+      { nome: 'Coleta e reciclagem de resíduos', prefixos: ['38'] } ] },
+
+    { nome: 'Transporte e armazenagem', prefixos: ['49', '52'], filhos: [
+      { nome: 'Transporte rodoviário (frota)', prefixos: ['49'] },
+      { nome: 'Armazenagem (CD, terminal, porto)', prefixos: ['52'] } ] },
+
+    { nome: 'Agro', prefixos: ['01', '02', '03'], filhos: [
+      { nome: 'Agricultura', prefixos: ['01'] },
+      { nome: 'Produção florestal', prefixos: ['02'] },
+      { nome: 'Pesca e aquicultura', prefixos: ['03'] } ] },
+
+    { nome: 'Produtos diversos', prefixos: ['32'] }
   ];
   // As 27 unidades da federacao mais "EX", que a Receita usa para
   // estabelecimento no exterior e que existe na base.
@@ -1462,7 +1521,8 @@
   // O score deixa de ser porta de entrada e vira mais um filtro: comeca em 0,
   // com a base inteira a vista. Quem quiser o corte premium sobe o controle.
   var estado = {
-    setor: 'Todos', uf: 'Todos', cidade: '', porte: 'Todos',
+    setor: 'Todos', prefixos: null, setorAberto: null,
+    uf: 'Todos', cidade: '', porte: 'Todos',
     unidade: 'Todos', faixa: 'Todas', contato: 'Todos', situacao: 'Todas',
     minScore: 0, capitalIdx: 0, idadeMin: 0,
     aberto: null, liberado: false, admin: false
@@ -1495,9 +1555,76 @@
     });
   }
 
+  // Barras com submenu, para o filtro de setor.
+  //
+  // Com 35 grupos de CNAE, uma fileira de 35 chips seria ilegivel. Aqui sao 14
+  // barras; a que estiver escolhida abre e mostra os subitens dela. Clicar na
+  // barra escolhe o grupo inteiro; clicar num subitem estreita para ele.
+  //
+  // So uma barra fica aberta por vez, de proposito: a lista aberta inteira
+  // ficaria mais alta que a tela e o filtro de estado sumiria abaixo dela.
+  function barras(caixa) {
+    caixa.innerHTML = '';
+
+    function linha(item, filho) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = filho ? 'barra-sub' : 'barra';
+      b.setAttribute('aria-pressed', estado.setor === item.nome ? 'true' : 'false');
+      var t = document.createElement('span');
+      t.textContent = item.nome;
+      b.appendChild(t);
+      if (!filho && item.filhos) {
+        var seta = document.createElement('i');
+        seta.className = 'barra-seta';
+        seta.setAttribute('aria-hidden', 'true');
+        b.appendChild(seta);
+        b.setAttribute('aria-expanded', estado.setorAberto === item.nome ? 'true' : 'false');
+      }
+      b.addEventListener('click', function () {
+        estado.setor = item.nome;
+        estado.prefixos = item.prefixos;
+        // Uma barra-mae abre a propria gaveta; um subitem mantem aberta a
+        // gaveta em que ele esta.
+        if (!filho) estado.setorAberto = item.filhos ? item.nome : null;
+        estado.aberto = null;
+        barras(caixa);
+        buscar();
+      });
+      return b;
+    }
+
+    var todos = document.createElement('button');
+    todos.type = 'button';
+    todos.className = 'barra barra--todos';
+    todos.textContent = 'Toda a indústria';
+    todos.setAttribute('aria-pressed', estado.setor === 'Todos' ? 'true' : 'false');
+    todos.addEventListener('click', function () {
+      estado.setor = 'Todos';
+      estado.prefixos = null;
+      estado.setorAberto = null;
+      estado.aberto = null;
+      barras(caixa);
+      buscar();
+    });
+    caixa.appendChild(todos);
+
+    SETORES.forEach(function (g) {
+      caixa.appendChild(linha(g, false));
+      if (g.filhos && estado.setorAberto === g.nome) {
+        var gaveta = document.createElement('div');
+        gaveta.className = 'barra-gaveta';
+        g.filhos.forEach(function (f) { gaveta.appendChild(linha(f, true)); });
+        caixa.appendChild(gaveta);
+      }
+    });
+  }
+
+  // Os prefixos escolhidos ficam guardados no estado, e nao procurados pelo
+  // nome: subitem e barra-mae podem ter nomes parecidos, e procurar por nome
+  // devolveria o grupo errado.
   function prefixosAtuais() {
-    var s = SETORES.filter(function (x) { return x.nome === estado.setor; })[0];
-    return s ? s.prefixos : null;
+    return estado.prefixos || null;
   }
   function porteAtual() {
     var p = PORTES.filter(function (x) { return x.nome === estado.porte; })[0];
@@ -1729,7 +1856,7 @@
 
       estado.admin = ['DONO', 'ADMIN'].indexOf(m.papel) >= 0;
 
-      chips($('#chips-setor'),   SETORES,   'setor');
+      barras($('#chips-setor'));
       chips($('#chips-porte'),   PORTES,    'porte');
       chips($('#chips-unid'),    UNIDADES,  'unidade');
       chips($('#chips-faixa'),   FAIXAS,    'faixa');
@@ -1837,7 +1964,8 @@
 
 
       $('#limpar').addEventListener('click', function () {
-        estado.setor = 'Todos'; estado.uf = 'Todos'; estado.cidade = '';
+        estado.setor = 'Todos'; estado.prefixos = null; estado.setorAberto = null;
+        estado.uf = 'Todos'; estado.cidade = '';
         estado.porte = 'Todos'; estado.unidade = 'Todos'; estado.faixa = 'Todas';
         estado.contato = 'Todos'; estado.situacao = 'Todas';
         estado.minScore = 0; estado.capitalIdx = 0; estado.idadeMin = 0;
@@ -1845,7 +1973,8 @@
         texto($('#score-valor'), 0);
         texto($('#capital-valor'), 'R$ 0');
         texto($('#idade-valor'), '0 anos');
-        [['#chips-setor', SETORES, 'setor'], ['#chips-porte', PORTES, 'porte'],
+        barras($('#chips-setor'));
+        [['#chips-porte', PORTES, 'porte'],
          ['#chips-unid', UNIDADES, 'unidade'], ['#chips-faixa', FAIXAS, 'faixa'],
          ['#chips-contato', CONTATOS, 'contato'], ['#chips-status', SITUACOES, 'situacao']
         ].forEach(function (c) { if ($(c[0])) chips($(c[0]), c[1], c[2]); });
